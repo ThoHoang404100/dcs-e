@@ -29,7 +29,7 @@ const ComponentBoxRoot = styled('div')(({ theme }) => ({
   columnGap: theme.spacing(2),
   justifyContent: 'center',
   padding: theme.spacing(6, 3),
-  borderRadius: theme.shape.borderRadius * 1.5,
+  borderRadius: Number(theme.shape.borderRadius) * 1.5,
   backgroundColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.04),
   boxShadow: `0 0 0 1px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.16)}`,
 }));
@@ -41,7 +41,7 @@ const ComponentBoxLabel = styled('span')(({ theme }) => ({
   marginLeft: theme.spacing(2.5),
   padding: theme.spacing(0.25, 1),
   color: theme.vars.palette.text.primary,
-  borderRadius: theme.shape.borderRadius * 2,
+  borderRadius: Number(theme.shape.borderRadius) * 2,
   backgroundColor: theme.vars.palette.common.white,
   transform: 'translateY(-50%)',
   fontSize: theme.typography.caption.fontSize,

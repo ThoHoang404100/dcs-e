@@ -28,4 +28,4 @@ export const SpendSchema = zod.object({
     bankNo: zod.string().min(1, "Vui lòng nhập số tài khoản ngân hàng"),
 });
 
-export type SpendSchemaType = Zod.infer<typeof SpendSchema>;
+export type SpendSchemaType = zod.infer<typeof SpendSchema>;

@@ -4,4 +4,4 @@ export const ContractPaymentSchema = zod.object({
 
 });
 
-export type ContractReceiptSchemaType = Zod.infer<typeof ContractPaymentSchema>;
+export type ContractReceiptSchemaType = zod.infer<typeof ContractPaymentSchema>;

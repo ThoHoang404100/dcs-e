@@ -82,8 +82,13 @@ const MuiButton: Components<Theme>['MuiButton'] = {
   /** **************************************
    * STYLE
    *************************************** */
-  styleOverrides: {
-    root: { variants: [softVariant.base, softVariant.colors].flat() },
+   variants: [
+    ...(softVariant.base || []), 
+    ...(softVariant.colors || []), 
+   ],
+
+   styleOverrides: {
+    root: { },
     /**
      * @variant contained
      */

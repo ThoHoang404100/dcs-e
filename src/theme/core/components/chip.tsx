@@ -87,6 +87,14 @@ const MuiChip: Components<Theme>['MuiChip'] = {
   /** **************************************
    * STYLE
    *************************************** */
+  variants: [
+    /**
+     * @variant soft
+     */
+    ...(softVariant.inheritColor || []),
+    ...(softVariant.colors || []),
+  ].filter(Boolean),
+
   styleOverrides: {
     root: ({ ownerState, theme }) => {
       const styled = {
@@ -116,13 +124,13 @@ const MuiChip: Components<Theme>['MuiChip'] = {
       };
 
       return {
-        variants: [
-          /**
-           * @variant soft
-           */
-          softVariant.inheritColor,
-          softVariant.colors,
-        ].flat(),
+        // variants: [
+        //   /**
+        //    * @variant soft
+        //    */
+        //   softVariant.inheritColor,
+        //   softVariant.colors,
+        // ].flat(),
         ...styled.colors,
         ...styled.disabled,
       };
@@ -137,7 +145,7 @@ const MuiChip: Components<Theme>['MuiChip'] = {
     /**
      * @sizes
      */
-    sizeMedium: ({ theme }) => ({ borderRadius: theme.shape.borderRadius * 1.25 }),
+    sizeMedium: ({ theme }) => ({ borderRadius: Number(theme.shape.borderRadius) * 1.25 }),
     sizeSmall: ({ theme }) => ({ borderRadius: theme.shape.borderRadius }),
     /**
      * @variant filled
@@ -147,15 +155,15 @@ const MuiChip: Components<Theme>['MuiChip'] = {
         defaultColor: {
           ...(!ownerState.disabled &&
             ownerState.color === 'default' && {
-              color: theme.vars.palette.common.white,
-              backgroundColor: theme.vars.palette.text.primary,
-              [`& .${chipClasses.avatar}`]: { color: theme.vars.palette.text.primary },
-              '&:hover': { backgroundColor: theme.vars.palette.grey[700] },
-              ...theme.applyStyles('dark', {
-                color: theme.vars.palette.grey[800],
-                '&:hover': { backgroundColor: theme.vars.palette.grey[100] },
-              }),
+            color: theme.vars.palette.common.white,
+            backgroundColor: theme.vars.palette.text.primary,
+            [`& .${chipClasses.avatar}`]: { color: theme.vars.palette.text.primary },
+            '&:hover': { backgroundColor: theme.vars.palette.grey[700] },
+            ...theme.applyStyles('dark', {
+              color: theme.vars.palette.grey[800],
+              '&:hover': { backgroundColor: theme.vars.palette.grey[100] },
             }),
+          }),
         },
       };
       return { ...styled.defaultColor };
@@ -168,8 +176,8 @@ const MuiChip: Components<Theme>['MuiChip'] = {
         defaultColor: {
           ...(!ownerState.disabled &&
             ownerState.color === 'default' && {
-              borderColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.32),
-            }),
+            borderColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.32),
+          }),
         },
       };
       return { ...styled.defaultColor };

@@ -59,9 +59,13 @@ const MuiAvatar: Components<Theme>['MuiAvatar'] = {
   /** **************************************
    * STYLE
    *************************************** */
+  variants: [
+    ...avatarColors.defaultColor || [],
+    ...avatarColors.colors || []
+  ],
   styleOverrides: {
-    root: { variants: [avatarColors.defaultColor, avatarColors.colors].flat() },
-    rounded: ({ theme }) => ({ borderRadius: theme.shape.borderRadius * 1.5 }),
+    root: {},
+    rounded: ({ theme }) => ({ borderRadius: Number(theme.shape.borderRadius) * 1.5 }),
     colorDefault: ({ ownerState, theme }) => {
       const color = colorByName(ownerState.alt);
 
@@ -69,13 +73,13 @@ const MuiAvatar: Components<Theme>['MuiAvatar'] = {
         ...(!!ownerState.alt && {
           ...(color !== 'default'
             ? {
-                color: theme.vars.palette[color].contrastText,
-                backgroundColor: theme.vars.palette[color].main,
-              }
+              color: theme.vars.palette[color].contrastText,
+              backgroundColor: theme.vars.palette[color].main,
+            }
             : {
-                color: theme.vars.palette.text.secondary,
-                backgroundColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.24),
-              }),
+              color: theme.vars.palette.text.secondary,
+              backgroundColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.24),
+            }),
         }),
       };
     },

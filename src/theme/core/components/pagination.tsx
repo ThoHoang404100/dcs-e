@@ -66,15 +66,16 @@ const MuiPagination: Components<Theme>['MuiPagination'] = {
   /** **************************************
    * STYLE
    *************************************** */
+  variants: [
+    /**
+     * @variant soft
+     */
+    ...(softVariant.standardColor || []),
+    ...(softVariant.colors || []),
+  ],
   styleOverrides: {
     root: {
-      variants: [
-        /**
-         * @variant soft
-         */
-        softVariant.standardColor,
-        softVariant.colors,
-      ].flat(),
+
     },
     /**
      * @variant text

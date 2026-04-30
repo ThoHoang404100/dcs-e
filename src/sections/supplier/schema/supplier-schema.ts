@@ -17,4 +17,4 @@ export const NewSupplierSchema = zod.object({
     address: zod.string().optional(),
 });
 
-export type NewSupplierSchemaType = Zod.infer<typeof NewSupplierSchema>;
+export type NewSupplierSchemaType = zod.infer<typeof NewSupplierSchema>;

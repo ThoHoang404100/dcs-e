@@ -28,4 +28,4 @@ export const ReceiptSchema = zod.object({
     bankNo: zod.string().min(1, "Vui lòng nhập số tài khoản ngân hàng"),
 });
 
-export type ReceiptSchemaType = Zod.infer<typeof ReceiptSchema>;
+export type ReceiptSchemaType = zod.infer<typeof ReceiptSchema>;

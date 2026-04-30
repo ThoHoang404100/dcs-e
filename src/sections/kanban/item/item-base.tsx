@@ -227,7 +227,7 @@ const ItemImage = styled('img', {
   height: 'auto',
   aspectRatio: '4/3',
   objectFit: 'cover',
-  borderRadius: theme.shape.borderRadius * 1.5,
+  borderRadius: Number(theme.shape.borderRadius) * 1.5,
   variants: [
     {
       props: { open: true },

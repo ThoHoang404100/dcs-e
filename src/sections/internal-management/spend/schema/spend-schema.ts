@@ -60,4 +60,4 @@ export const InternalSpendSchema = zod.object({
 
 });
 
-export type InternalSpendSchemaType = Zod.infer<typeof InternalSpendSchema>;
+export type InternalSpendSchemaType = zod.infer<typeof InternalSpendSchema>;

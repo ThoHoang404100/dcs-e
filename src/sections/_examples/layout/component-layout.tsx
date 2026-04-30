@@ -190,7 +190,7 @@ const LayoutSection = styled('div')(({ theme }) => ({
   flexDirection: 'column',
   gap: 'var(--section-gap)',
   padding: 'var(--section-padding)',
-  borderRadius: theme.shape.borderRadius * 2,
+  borderRadius: Number(theme.shape.borderRadius) * 2,
   backgroundColor: theme.vars.palette.background.neutral,
 }));
 

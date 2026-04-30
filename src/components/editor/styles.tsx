@@ -145,7 +145,7 @@ export const EditorRoot = styled('div', {
         padding: theme.spacing(0.25, 0.5),
         color: theme.vars.palette.text.secondary,
         fontSize: theme.typography.body2.fontSize,
-        borderRadius: theme.shape.borderRadius / 2,
+        borderRadius: Number(theme.shape.borderRadius) / 2,
         backgroundColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.2),
       },
       /**

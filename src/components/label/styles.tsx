@@ -51,39 +51,39 @@ export const LabelRoot = styled('span', {
   const colorStyles: CSSObject = {
     ...(color &&
       color !== 'default' && {
-        /**
-         * @variant filled
-         */
-        ...(variant === 'filled' && {
-          color: theme.vars.palette[color].contrastText,
-          backgroundColor: theme.vars.palette[color].main,
-        }),
-        /**
-         * @variant outlined
-         */
-        ...(variant === 'outlined' && {
-          backgroundColor: 'transparent',
-          color: theme.vars.palette[color].main,
-          border: `2px solid ${theme.vars.palette[color].main}`,
-        }),
-        /**
-         * @variant soft
-         */
-        ...(variant === 'soft' && {
-          color: theme.vars.palette[color].dark,
-          backgroundColor: varAlpha(theme.vars.palette[color].mainChannel, 0.16),
-          ...theme.applyStyles('dark', {
-            color: theme.vars.palette[color].light,
-          }),
-        }),
-        /**
-         * @variant inverted
-         */
-        ...(variant === 'inverted' && {
-          color: theme.vars.palette[color].darker,
-          backgroundColor: theme.vars.palette[color].lighter,
+      /**
+       * @variant filled
+       */
+      ...(variant === 'filled' && {
+        color: theme.vars.palette[color].contrastText,
+        backgroundColor: theme.vars.palette[color].main,
+      }),
+      /**
+       * @variant outlined
+       */
+      ...(variant === 'outlined' && {
+        backgroundColor: 'transparent',
+        color: theme.vars.palette[color].main,
+        border: `2px solid ${theme.vars.palette[color].main}`,
+      }),
+      /**
+       * @variant soft
+       */
+      ...(variant === 'soft' && {
+        color: theme.vars.palette[color].dark,
+        backgroundColor: varAlpha(theme.vars.palette[color].mainChannel, 0.16),
+        ...theme.applyStyles('dark', {
+          color: theme.vars.palette[color].light,
         }),
       }),
+      /**
+       * @variant inverted
+       */
+      ...(variant === 'inverted' && {
+        color: theme.vars.palette[color].darker,
+        backgroundColor: theme.vars.palette[color].lighter,
+      }),
+    }),
   };
 
   return {
@@ -100,7 +100,7 @@ export const LabelRoot = styled('span', {
     padding: theme.spacing(0, 0.75),
     fontSize: theme.typography.pxToRem(12),
     fontWeight: theme.typography.fontWeightBold,
-    borderRadius: theme.shape.borderRadius * 0.75,
+    borderRadius: Number(theme.shape.borderRadius) * 0.75,
     transition: theme.transitions.create(['all'], { duration: theme.transitions.duration.shorter }),
     ...defaultStyles,
     ...colorStyles,

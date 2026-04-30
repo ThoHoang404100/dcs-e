@@ -132,7 +132,7 @@ const ItemRoot = styled('div')(({ theme }) => ({
   touchAction: 'manipulation',
   padding: theme.spacing(5, 0),
   WebkitTapHighlightColor: 'transparent',
-  borderRadius: theme.shape.borderRadius * 2,
+  borderRadius: Number(theme.shape.borderRadius) * 2,
   transition: theme.transitions.create(['box-shadow']),
   color: varAlpha(theme.vars.palette.text.disabledChannel, 0.24),
   backgroundColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.04),

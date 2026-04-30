@@ -22,7 +22,8 @@ export function menuItemStyles(theme: Theme): CSSObject {
   return {
     ...theme.typography.body2,
     padding: theme.spacing(0.75, 1),
-    borderRadius: theme.shape.borderRadius * 0.75,
+    // borderRadius: theme.shape.borderRadius * 0.75,
+    borderRadius: Number(theme.shape.borderRadius) * 0.75,
     '&:not(:last-of-type)': {
       marginBottom: 4,
     },
@@ -91,7 +92,8 @@ export function paperStyles(theme: Theme, options?: PaperStyleOptions): CSSObjec
     ...(dropdown && {
       padding: theme.spacing(0.5),
       boxShadow: theme.vars.customShadows.dropdown,
-      borderRadius: `${theme.shape.borderRadius * 1.25}px`,
+      borderRadius: Number(theme.shape.borderRadius) * 2
+      // borderRadius: `${theme.shape.borderRadius * 1.25}px`,
     }),
   };
 }

@@ -39,7 +39,7 @@ const LayoutRoot = styled('div')(({ theme }) => ({
   display: 'flex',
   position: 'relative',
   boxShadow: theme.vars.customShadows.card,
-  borderRadius: theme.shape.borderRadius * 2,
+  borderRadius: Number(theme.shape.borderRadius) * 2,
   backgroundColor: theme.vars.palette.background.paper,
 }));
 

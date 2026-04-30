@@ -31,7 +31,7 @@ const ItemRoot = styled(ButtonBase, {
   width: 28,
   height: 28,
   padding: theme.spacing(0, 0.75),
-  borderRadius: theme.shape.borderRadius * 0.75,
+  borderRadius: Number(theme.shape.borderRadius) * 0.75,
   '&:hover': {
     backgroundColor: theme.vars.palette.action.hover,
   },

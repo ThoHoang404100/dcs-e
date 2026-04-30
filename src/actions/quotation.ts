@@ -177,3 +177,68 @@ export async function sendEmailQuotation({ quotationId, email }: { quotationId: 
         throw error;
     }
 }
+
+
+
+// Định nghĩa type cho Props của hook
+type GetQuotationDetailProps = {
+    quotationId: number;
+    pageNumber: number;
+    pageSize: number;
+    options?: { enabled?: boolean };
+};
+
+/**
+ * Hook lấy chi tiết báo giá (có phân trang cho danh sách sản phẩm bên trong)
+ * URL: /api/v1/quotation/get-detail/{id}?pageNumber={...}&pageSize={...}
+ */
+export function useGetQuotationDetail({
+    quotationId,
+    pageNumber,
+    pageSize,
+    options
+}: GetQuotationDetailProps) {
+
+    // Tạo query string cho phân trang
+    const params = useMemo(() => {
+        return `?pageNumber=${pageNumber}&pageSize=${pageSize}`;
+    }, [pageNumber, pageSize]);
+
+    const enabled = options?.enabled ?? true;
+
+    // Sử dụng endpoint đã định nghĩa trong file của bạn: endpoints.quotation.detail
+    const url = enabled && quotationId
+        ? endpoints.quotation.detail(quotationId, params)
+        : null;
+
+    // Sử dụng ResQuotationList vì response trả về mảng "items" (như bạn đã cung cấp ở trên)
+    const { data, isLoading, error, isValidating, mutate } = useSWR<ResQuotationList>(
+        url,
+        fetcher,
+        swrOptions
+    );
+
+    const memoizedValue = useMemo(() => {
+        // Lấy phần tử đầu tiên từ items (chứa thông tin quotation và mảng products)
+        const detailData = data?.data?.items?.[0] || null;
+
+        return {
+            quotationDetail: detailData,
+            pagination: {
+                pageNumber: data?.data?.pageNumber ?? 1,
+                pageSize: data?.data?.pageSize ?? pageSize,
+                totalRecord: data?.data?.totalRecord ?? 0,
+                totalPages: data?.data?.totalPages ?? 0,
+            },
+            detailLoading: isLoading,
+            detailError: error,
+            detailValidating: isValidating,
+            detailEmpty: !isLoading && !detailData,
+            detailMutate: mutate,
+        };
+    }, [data, error, isLoading, isValidating, pageSize, mutate]);
+
+    return memoizedValue;
+}
+
+

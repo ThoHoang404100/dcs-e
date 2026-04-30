@@ -19,7 +19,7 @@ const MuiDialog: Components<Theme>['MuiDialog'] = {
   styleOverrides: {
     paper: ({ ownerState, theme }) => ({
       boxShadow: theme.vars.customShadows.dialog,
-      borderRadius: theme.shape.borderRadius * 2,
+      borderRadius: Number(theme.shape.borderRadius) * 2,
       ...(!ownerState.fullScreen && { margin: theme.spacing(2) }),
     }),
     paperFullScreen: { borderRadius: 0 },

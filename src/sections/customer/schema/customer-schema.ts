@@ -38,4 +38,4 @@ export const NewCustomerSchema = zod.object({
     }
 );
 
-export type NewCustomerSchemaType = Zod.infer<typeof NewCustomerSchema>;
+export type NewCustomerSchemaType = zod.infer<typeof NewCustomerSchema>;

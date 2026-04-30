@@ -178,29 +178,30 @@ const MuiFab: Components<Theme>['MuiFab'] = {
   /** **************************************
    * STYLE
    *************************************** */
+  variants: [
+    /**
+     * @variant filled
+     */
+    ...filledVariant.base || [],
+    ...filledVariant.colors || [],
+    /**
+     * @variant outlined
+     */
+    ...outlinedVariant.base || [],
+    ...outlinedVariant.colors || [],
+    /**
+     * @variant soft
+     */
+    ...softVariant.base || [],
+    ...softVariant.colors || [],
+    /**
+     * @sizes
+     */
+    ...sizes,
+  ],
   styleOverrides: {
     root: {
-      variants: [
-        /**
-         * @variant filled
-         */
-        filledVariant.base,
-        filledVariant.colors,
-        /**
-         * @variant outlined
-         */
-        outlinedVariant.base,
-        outlinedVariant.colors,
-        /**
-         * @variant soft
-         */
-        softVariant.base,
-        softVariant.colors,
-        /**
-         * @sizes
-         */
-        sizes,
-      ].flat(),
+
     },
   },
 };
