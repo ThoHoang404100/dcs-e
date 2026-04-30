@@ -57,7 +57,7 @@ export function Lines({ strokeCount }: { strokeCount: number }) {
           x2="100%"
           y1="50%"
           y2="50%"
-          variants={drawVariants.x}
+          variants={drawVariants.x as any}
           style={{
             transform: translateY(index),
             stroke: 'var(--hero-line-stroke-color)',
@@ -83,7 +83,7 @@ export function Lines({ strokeCount }: { strokeCount: number }) {
           x2="50%"
           y1="0%"
           y2="100%"
-          variants={drawVariants.y}
+          variants={drawVariants.y as any}
           style={{
             transform: translateX(index),
             stroke: 'var(--hero-line-stroke-color)',
@@ -171,14 +171,14 @@ export function PlusIcon() {
   return (
     <>
       <m.path
-        variants={drawPlus}
+        variants={drawPlus as any}
         d="M8 0V16M16 8.08889H0"
         stroke="var(--hero-plus-stroke-color)"
         style={{ transform: 'translate(calc(50% - 448px), calc(50% - 128px))' }}
       />
 
       <m.path
-        variants={drawPlus}
+        variants={drawPlus as any}
         d="M8 0V16M16 8.08889H0"
         stroke="var(--hero-plus-stroke-color)"
         style={{ transform: 'translate(calc(50% + 432px), calc(50% + 192px))' }}

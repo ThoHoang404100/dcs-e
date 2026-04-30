@@ -12,5 +12,5 @@ export const ControlPanelRoot = styled('div')(({ theme }) => ({
   top: theme.spacing(1),
   right: theme.spacing(1),
   padding: theme.spacing(2),
-  borderRadius: theme.shape.borderRadius * 1.5,
+  borderRadius: Number(theme.shape.borderRadius) * 1.5,
 }));

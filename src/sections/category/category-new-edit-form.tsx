@@ -16,7 +16,7 @@ type Props = {
     open: boolean;
     onClose: () => void;
 }
-export type NewCategorySchemaType = Zod.infer<typeof NewCategorySchema>;
+export type NewCategorySchemaType = zod.infer<typeof NewCategorySchema>;
 
 export const NewCategorySchema = zod.object({
     name: zod.string().min(1, { message: 'Tên nhóm sản phẩm là trường bắt buộc!' }),

@@ -21,7 +21,7 @@ export const NewEmployeeTypeSchema = zod.object({
     name: zod.string().min(1, "Tên chức vụ là trường bắt buộc"),
 });
 
-export type NewEmployeeTypeSchemaType = Zod.infer<typeof NewEmployeeTypeSchema>;
+export type NewEmployeeTypeSchemaType = zod.infer<typeof NewEmployeeTypeSchema>;
 
 export function EmployeeTypeNewEditForm({ currentEmployeeType, open, onClose, selectedId }: Props) {
     const defaultValues: NewEmployeeTypeSchemaType = {

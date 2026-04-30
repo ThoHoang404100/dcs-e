@@ -5,6 +5,7 @@ import { DashboardContent } from "src/layouts/dashboard";
 import { paths } from "src/routes/paths";
 import { useState } from "react";
 import { QuotationCardList } from "../quotation-card-list";
+import { QuotationTableList } from "../QuotationTableList";
 import { QuotationForm } from "../quotation-form";
 import { QuotationDetails } from "../quotation-details";
 import { IQuotationItem } from "src/types/quotation";
@@ -76,7 +77,7 @@ export function QuotationMainView() {
                 />
 
                 <ServiceNavTabs tabs={CUSTOMER_SERVICE_TAB_DATA} activePath={location.pathname} />
-                <QuotationCardList
+                {/* <QuotationCardList
                     onViewDetails={handleViewDetails}
                     onEditing={handleEditing}
                     page={page}
@@ -84,7 +85,17 @@ export function QuotationMainView() {
                     rowsPerPage={rowsPerPage}
                     setRowsPerPage={setRowsPerPage}
                     location={location}
+                /> */}
+
+                <QuotationTableList
+                    onViewDetails={handleViewDetails}
+                    onEditing={handleEditing}
+                    page={page}
+                    setPage={setPage}
+                    rowsPerPage={rowsPerPage}
+                    setRowsPerPage={setRowsPerPage}
                 />
+
                 <QuotationForm
                     selectedQuotation={selectedQuotation}
                     openForm={openForm}

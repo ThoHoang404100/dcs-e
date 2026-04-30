@@ -61,7 +61,7 @@ const LayoutList = styled('div')(({ theme }) => ({
   flex: '0 0 320px',
   overflow: 'hidden',
   flexDirection: 'column',
-  borderRadius: theme.shape.borderRadius * 1.5,
+  borderRadius: Number(theme.shape.borderRadius) * 1.5,
   backgroundColor: theme.vars.palette.background.default,
   [theme.breakpoints.up('md')]: { display: 'flex' },
 }));
@@ -72,6 +72,6 @@ const LayoutDetails = styled('div')(({ theme }) => ({
   flex: '1 1 auto',
   overflow: 'hidden',
   flexDirection: 'column',
-  borderRadius: theme.shape.borderRadius * 1.5,
+  borderRadius: Number(theme.shape.borderRadius) * 1.5,
   backgroundColor: theme.vars.palette.background.default,
 }));

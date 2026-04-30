@@ -152,7 +152,7 @@ export function QuotationItemsTable({
 
     return (
         <>
-            <Stack width={{ xs: "100%", sm: "100%", md: "100%", lg: "70%" }} spacing={2} sx={{ height: "100%" }}>
+            <Stack width={{ xs: "100%", sm: "100%", md: "100%", lg: "100%" }} spacing={2} sx={{ height: "100%" }}>
                 <Typography variant="subtitle2">Sản phẩm</Typography>
 
                 <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>

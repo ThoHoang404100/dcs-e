@@ -64,7 +64,8 @@ export function updateCoreWithSettings(
     };
 
     return {
-      ...colorSchemes,
+      // ...colorSchemes,
+      ...(colorSchemes || {}),
       palette: updatedPalette,
       customShadows: updatedCustomShadows,
     };

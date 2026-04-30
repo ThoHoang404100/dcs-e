@@ -20,7 +20,7 @@ export const NewUnitSchema = zod.object({
     name: zod.string().min(1, "Tên đơn vị tính là trường bắt buộc"),
 });
 
-export type NewUnitSchemaType = Zod.infer<typeof NewUnitSchema>;
+export type NewUnitSchemaType = zod.infer<typeof NewUnitSchema>;
 
 export function UnitNewEditForm({ currentUnit, open, onClose, selectedId }: Props) {
     const defaultValues: NewUnitSchemaType = {

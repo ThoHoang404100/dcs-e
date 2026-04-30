@@ -40,5 +40,5 @@ export const CreateEmployeeSchema = EditEmployeeSchema.extend({
     userTypeId: zod.number().min(0, { message: "Vai trò là trường bắt buộc" })
 });
 
-export type EditEmployeeSchemaType = Zod.infer<typeof EditEmployeeSchema>;
+export type EditEmployeeSchemaType = zod.infer<typeof EditEmployeeSchema>;
 export type CreateEmployeeSchemaType = zod.infer<typeof CreateEmployeeSchema>;

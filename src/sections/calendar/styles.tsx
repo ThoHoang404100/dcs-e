@@ -79,7 +79,7 @@ export const CalendarRoot = styled('div')(({ theme }) => ({
     border: 0,
     overflow: 'hidden',
     boxShadow: theme.vars.customShadows.dropdown,
-    borderRadius: theme.shape.borderRadius * 1.5,
+    borderRadius: Number(theme.shape.borderRadius) * 1.5,
     backgroundColor: theme.vars.palette.background.paper,
   },
   '& .fc .fc-popover-header': {

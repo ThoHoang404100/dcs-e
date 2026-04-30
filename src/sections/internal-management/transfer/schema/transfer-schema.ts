@@ -19,4 +19,4 @@ export const InternalTransferSchema = z.object({
     note: z.string().max(255, "Giới hạn nội dung là 255 ký tự").optional(),
 });
 
-export type InternalTransferSchemaType = Zod.infer<typeof InternalTransferSchema>;
+export type InternalTransferSchemaType = z.infer<typeof InternalTransferSchema>;
