@@ -22,6 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Create .env file
+        run: echo "${{ secrets.DOTENV }}" > .env
+
       - name: Build project
         run: npm run build -- --outDir dist
 
@@ -59,4 +62,4 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASS }}
           script: |
-            powershell -NoProfile -ExecutionPolicy Bypass -Command "Import-Module WebAdministration; $path = 'C:\inetpub\wwwroot\DCSE_V2_Client\${{ env.DEPLOY_VERSION }}\dist'; if (-Not (Test-Path $path)) { throw 'Loi: Thu muc khong ton tai' }; Set-ItemProperty 'IIS:\Sites\DCS_V2' -Name physicalPath -Value $path; C:\Windows\System32\inetsrv\appcmd.exe recycle apppool /apppool.name:DCS_V2; Start-Sleep -Seconds 2; C:\Windows\System32\inetsrv\appcmd.exe start apppool /apppool.name:DCS_V2; C:\Windows\System32\inetsrv\appcmd.exe start site /site.name:DCS_V2; Write-Host 'Deploy FE thanh cong!'"
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "Import-Module WebAdministration; $path = 'C:\inetpub\wwwroot\DCSE_V2_Client\${{ env.DEPLOY_VERSION }}\dist'; if (-Not (Test-Path $path)) { throw 'Loi: Thu muc khong ton tai' }; Copy-Item -Path 'C:\inetpub\wwwroot\DCSE_V2_Client\Sharing\*.*' -Destination $path -Force; Set-ItemProperty 'IIS:\Sites\DCS_V2' -Name physicalPath -Value $path; C:\Windows\System32\inetsrv\appcmd.exe recycle apppool /apppool.name:DCS_V2; Start-Sleep -Seconds 2; C:\Windows\System32\inetsrv\appcmd.exe start apppool /apppool.name:DCS_V2; C:\Windows\System32\inetsrv\appcmd.exe start site /site.name:DCS_V2; Write-Host 'Deploy FE thanh cong!'"
