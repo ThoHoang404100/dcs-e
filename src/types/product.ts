@@ -81,7 +81,7 @@ export type ProductItem = {
   purchasePrice: number;
   price: number;
   unit: string;
-  unitId: number;
+  unitID: number;
   stock: number;
   warranty: number;
   createdDate: IDateValue;

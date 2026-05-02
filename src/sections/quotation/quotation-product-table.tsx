@@ -299,6 +299,173 @@ export function QuotationItemsTable({
 }
 
 
+// function ProductAutocomplete({
+//     index,
+//     methods,
+//     append
+// }: {
+//     index: number;
+//     methods: UseFormReturn<any>;
+//     append: (value: any) => void;
+// }) {
+//     const [inputValue, setInputValue] = useState("");
+//     const [openQuickForm, setOpenQuickForm] = useState(false);
+//     const [defaultName, setDefaultName] = useState("");
+//     const [pendingSelectName, setPendingSelectName] = useState<string | null>(null);
+
+//     const {
+//         products = [],
+//         productsLoading,
+//         mutation: mutateProducts
+//     } = useGetProducts({
+//         pageNumber: 1,
+//         pageSize: 999,
+//         key: inputValue,
+//     });
+
+//     const currentProductId = methods.watch(`items.${index}.product`);
+
+//     const currentProduct =
+//         products.find(p => String(p.id) === String(currentProductId)) || null;
+
+//     useEffect(() => {
+//         if (currentProduct?.name) {
+//             setInputValue(currentProduct.name);
+//         }
+//     }, [currentProduct?.id]);
+
+//     useEffect(() => {
+//         if (!pendingSelectName) return;
+//         if (!products.length) return;
+
+//         const found = products.find(
+//             p => p.name.trim().toLowerCase() === pendingSelectName.trim().toLowerCase()
+//         );
+
+//         if (found) {
+//             methods.setValue(`items.${index}.product`, String(found.id), { shouldValidate: true });
+
+//             methods.setValue(`items.${index}.unit`, String(found.unitId || ""));
+//             methods.setValue(`items.${index}.unitName`, found.unit || "");
+//             methods.setValue(`items.${index}.price`, found.price ?? 0);
+//             methods.setValue(`items.${index}.vat`, found.vat ?? 0);
+
+//             setInputValue(found.name || "");
+//             setPendingSelectName(null);
+
+//             const items = methods.getValues("items") || [];
+//             if (index === items.length - 1) {
+//                 append({ name: "", unit: "", qty: 1, price: 0, vat: 0 });
+//             }
+//         }
+//     }, [products, pendingSelectName]);
+
+//     const handleCreateNew = () => {
+//         if (!inputValue.trim()) return;
+
+//         setDefaultName(inputValue.trim());
+//         setOpenQuickForm(true);
+//     };
+
+//     const handleProductSuccess = async () => {
+
+//         setPendingSelectName(defaultName);
+
+//         await mutateProducts?.();
+
+//         setOpenQuickForm(false);
+//         setDefaultName("");
+//     };
+
+//     return (
+//         <Stack spacing={0.5}>
+//             <Field.Autocomplete
+//                 name={`items.${index}.product`}
+//                 placeholder="Nhập hoặc chọn sản phẩm"
+
+//                 options={products}
+//                 loading={productsLoading}
+//                 freeSolo
+
+//                 value={currentProduct}
+//                 inputValue={inputValue}
+
+//                 filterOptions={(options) => options}
+
+//                 getOptionLabel={(opt) => {
+//                     if (typeof opt === "string") return opt;
+//                     return opt?.name ?? "";
+//                 }}
+
+//                 isOptionEqualToValue={(opt, val) => {
+//                     if (!val) return false;
+//                     return String(opt.id) === String(val.id);
+//                 }}
+
+//                 onInputChange={(_, value) => {
+//                     setInputValue(value || "");
+//                 }}
+
+//                 onChange={(_, newValue) => {
+//                     if (newValue && typeof newValue === "object") {
+//                         methods.setValue(`items.${index}.product`, String(newValue.id), { shouldValidate: true });
+
+//                         methods.setValue(`items.${index}.unit`, String(newValue.unitId || ""));
+//                         methods.setValue(`items.${index}.unitName`, newValue.unit || "");
+//                         methods.setValue(`items.${index}.price`, newValue.price ?? 0);
+//                         methods.setValue(`items.${index}.vat`, newValue.vat ?? 0);
+
+//                         setInputValue(newValue.name || "");
+//                     }
+
+//                     if (typeof newValue === "string") {
+//                         setInputValue(newValue);
+//                     }
+
+//                     const items = methods.getValues("items") || [];
+//                     if (index === items.length - 1) {
+//                         append({ name: "", unit: "", qty: 1, price: 0, vat: 0 });
+//                     }
+//                 }}
+
+//                 noOptionsText="Không có dữ liệu"
+//                 fullWidth
+//                 sx={{ width: 500 }}
+//             />
+
+//             {inputValue.length > 1 && !products.some(p =>
+//                 p.name.toLowerCase().includes(inputValue.toLowerCase())
+//             ) && (
+//                     <Typography variant="caption" color="error" sx={{ pl: 1 }}>
+//                         Sản phẩm chưa tồn tại.{" "}
+//                         <Button
+//                             size="small"
+//                             onClick={handleCreateNew}
+//                             sx={{
+//                                 fontSize: "13px",
+//                                 p: 0,
+//                                 textDecoration: "underline",
+//                                 minWidth: "auto"
+//                             }}
+//                         >
+//                             Thêm mới ngay
+//                         </Button>
+//                     </Typography>
+//                 )}
+
+//             <ProductQuickNewForm
+//                 open={openQuickForm}
+//                 onClose={() => {
+//                     setOpenQuickForm(false);
+//                     setDefaultName("");
+//                 }}
+//                 defaultName={defaultName}
+//                 onSuccess={handleProductSuccess}
+//             />
+//         </Stack>
+//     );
+// }
+
 function ProductAutocomplete({
     index,
     methods,
@@ -325,54 +492,51 @@ function ProductAutocomplete({
 
     const currentProductId = methods.watch(`items.${index}.product`);
 
-    const currentProduct =
-        products.find(p => String(p.id) === String(currentProductId)) || null;
+    const currentProduct = useMemo(() =>
+        products.find(p => String(p.id) === String(currentProductId)) || null
+        , [products, currentProductId]);
 
     useEffect(() => {
-        if (currentProduct?.name) {
-            setInputValue(currentProduct.name);
-        }
-    }, [currentProduct?.id]);
-
-    useEffect(() => {
-        if (!pendingSelectName) return;
-        if (!products.length) return;
+        if (!pendingSelectName || products.length === 0) return;
 
         const found = products.find(
             p => p.name.trim().toLowerCase() === pendingSelectName.trim().toLowerCase()
         );
 
         if (found) {
-            methods.setValue(`items.${index}.product`, String(found.id), { shouldValidate: true });
-
-            methods.setValue(`items.${index}.unit`, String(found.unitId || ""));
-            methods.setValue(`items.${index}.unitName`, found.unit || "");
-            methods.setValue(`items.${index}.price`, found.price ?? 0);
-            methods.setValue(`items.${index}.vat`, found.vat ?? 0);
-
-            setInputValue(found.name || "");
+            updateFormValues(found);
             setPendingSelectName(null);
+        }
+    }, [products, pendingSelectName]);
+
+    const updateFormValues = (product: ProductItem | null) => {
+        if (product) {
+            methods.setValue(`items.${index}.product`, String(product.id), { shouldValidate: true });
+            const unitValue = product.unitID ? String(product.unitID) : "";
+            methods.setValue(`items.${index}.unit`, unitValue, { shouldValidate: true });
+
+            methods.setValue(`items.${index}.unitName`, product.unit || "");
+
+            methods.setValue(`items.${index}.price`, product.price ?? 0);
+            methods.setValue(`items.${index}.vat`, product.vat ?? 0);
+            setInputValue(product.name || "");
 
             const items = methods.getValues("items") || [];
             if (index === items.length - 1) {
                 append({ name: "", unit: "", qty: 1, price: 0, vat: 0 });
             }
         }
-    }, [products, pendingSelectName]);
+    };
 
     const handleCreateNew = () => {
         if (!inputValue.trim()) return;
-
         setDefaultName(inputValue.trim());
         setOpenQuickForm(true);
     };
 
     const handleProductSuccess = async () => {
-
         setPendingSelectName(defaultName);
-
         await mutateProducts?.();
-
         setOpenQuickForm(false);
         setDefaultName("");
     };
@@ -380,13 +544,12 @@ function ProductAutocomplete({
     return (
         <Stack spacing={0.5}>
             <Field.Autocomplete
+                key={`autocomplete-${index}-${currentProductId}`}
                 name={`items.${index}.product`}
                 placeholder="Nhập hoặc chọn sản phẩm"
-
                 options={products}
                 loading={productsLoading}
                 freeSolo
-
                 value={currentProduct}
                 inputValue={inputValue}
 
@@ -397,34 +560,22 @@ function ProductAutocomplete({
                     return opt?.name ?? "";
                 }}
 
-                isOptionEqualToValue={(opt, val) => {
-                    if (!val) return false;
-                    return String(opt.id) === String(val.id);
-                }}
+                isOptionEqualToValue={(opt, val) => String(opt.id) === String(val?.id)}
 
-                onInputChange={(_, value) => {
-                    setInputValue(value || "");
+                onInputChange={(_, value, reason) => {
+                    if (reason === 'input') {
+                        setInputValue(value);
+                    }
                 }}
 
                 onChange={(_, newValue) => {
-                    if (newValue && typeof newValue === "object") {
-                        methods.setValue(`items.${index}.product`, String(newValue.id), { shouldValidate: true });
-
-                        methods.setValue(`items.${index}.unit`, String(newValue.unitId || ""));
-                        methods.setValue(`items.${index}.unitName`, newValue.unit || "");
-                        methods.setValue(`items.${index}.price`, newValue.price ?? 0);
-                        methods.setValue(`items.${index}.vat`, newValue.vat ?? 0);
-
-                        setInputValue(newValue.name || "");
-                    }
-
-                    if (typeof newValue === "string") {
+                    if (typeof newValue === "object" && newValue !== null) {
+                        updateFormValues(newValue as ProductItem);
+                    } else if (typeof newValue === "string") {
                         setInputValue(newValue);
-                    }
-
-                    const items = methods.getValues("items") || [];
-                    if (index === items.length - 1) {
-                        append({ name: "", unit: "", qty: 1, price: 0, vat: 0 });
+                    } else {
+                        methods.setValue(`items.${index}.product`, "");
+                        setInputValue("");
                     }
                 }}
 
@@ -434,19 +585,14 @@ function ProductAutocomplete({
             />
 
             {inputValue.length > 1 && !products.some(p =>
-                p.name.toLowerCase().includes(inputValue.toLowerCase())
+                p.name.toLowerCase() === inputValue.toLowerCase()
             ) && (
                     <Typography variant="caption" color="error" sx={{ pl: 1 }}>
                         Sản phẩm chưa tồn tại.{" "}
                         <Button
                             size="small"
                             onClick={handleCreateNew}
-                            sx={{
-                                fontSize: "13px",
-                                p: 0,
-                                textDecoration: "underline",
-                                minWidth: "auto"
-                            }}
+                            sx={{ fontSize: "13px", p: 0, textDecoration: "underline", minWidth: "auto" }}
                         >
                             Thêm mới ngay
                         </Button>
@@ -465,7 +611,6 @@ function ProductAutocomplete({
         </Stack>
     );
 }
-
 
 
 function UnitSelection({
