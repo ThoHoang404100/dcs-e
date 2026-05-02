@@ -36,7 +36,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          password: ${{ secrets.VPS_PASS }}
           script: |
             powershell -Command "New-Item -ItemType Directory -Force -Path 'C:\inetpub\wwwroot\DCSE_V2_Client\${{ env.DEPLOY_VERSION }}\dist'"
 
@@ -46,7 +46,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          password: ${{ secrets.VPS_PASS }}
           source: "dist"
           target: "C:/inetpub/wwwroot/DCSE_V2_Client/${{ env.DEPLOY_VERSION }}/dist"
           strip_components: 1
@@ -57,6 +57,6 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          password: ${{ secrets.VPS_PASS }}
           script: |
             powershell -NoProfile -ExecutionPolicy Bypass -Command "Import-Module WebAdministration; $path = 'C:\inetpub\wwwroot\DCSE_V2_Client\${{ env.DEPLOY_VERSION }}\dist'; if (-Not (Test-Path $path)) { throw 'Loi: Thu muc khong ton tai' }; Set-ItemProperty 'IIS:\Sites\DCS_V2' -Name physicalPath -Value $path; C:\Windows\System32\inetsrv\appcmd.exe recycle apppool /apppool.name:DCS_V2; Start-Sleep -Seconds 2; C:\Windows\System32\inetsrv\appcmd.exe start apppool /apppool.name:DCS_V2; C:\Windows\System32\inetsrv\appcmd.exe start site /site.name:DCS_V2; Write-Host 'Deploy FE thanh cong!'"
