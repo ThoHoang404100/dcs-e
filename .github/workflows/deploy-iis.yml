@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Build project
-        run: npm run build
+        run: npm run build -- --outDir dist
 
       # 🏷️ Tạo mã version tự động
       - name: Set Release Version
