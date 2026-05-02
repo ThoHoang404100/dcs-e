@@ -314,6 +314,9 @@ export function QuotationTableList({
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={(e) => setRowsPerPage(parseInt(e.target.value))}
         labelRowsPerPage="Số dòng mỗi trang:"
+        labelDisplayedRows={({ from, to, count }) =>
+          `${from}–${to} trên tổng ${count !== -1 ? count : `hơn ${to}`}`
+        }
       />
 
       <Divider />
@@ -416,6 +419,9 @@ export function QuotationTableList({
               }}
               rowsPerPageOptions={[5, 10, 20]}
               labelRowsPerPage="Số dòng mỗi trang:"
+              labelDisplayedRows={({ from, to, count }) =>
+                `${from}–${to} trên tổng ${count !== -1 ? count : `hơn ${to}`}`
+              }
             />
           </Box>
         )}

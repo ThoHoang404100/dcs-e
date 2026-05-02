@@ -14,6 +14,9 @@ import { useBoolean } from "minimal-shared/hooks";
 import { mutate } from "swr";
 import { endpoints } from "src/lib/axios";
 import { IQuotationDetails } from "src/types/quotation";
+import { ProductQuickNewForm } from "./ProductQuickNewForm";
+import { useMemo } from "react";
+import { ProductItem } from "src/types/product";
 
 type QuotationItemsTableProps = {
     idQuotation: number | undefined;
@@ -135,7 +138,6 @@ export function QuotationItemsTable({
         </Dialog>
     );
 
-    // const fixedTotal = Number(total.toFixed(2));
 
     const stickyRightCell = {
         position: 'sticky',
@@ -153,7 +155,6 @@ export function QuotationItemsTable({
     return (
         <>
             <Stack width={{ xs: "100%", sm: "100%", md: "100%", lg: "100%" }} spacing={2} sx={{ height: "100%" }}>
-                <Typography variant="subtitle2">Sản phẩm</Typography>
 
                 <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
                     <Box sx={{ flex: 1, display: "flex", flexDirection: 'column', overflowY: "hidden" }}>
@@ -297,6 +298,7 @@ export function QuotationItemsTable({
     );
 }
 
+
 function ProductAutocomplete({
     index,
     methods,
@@ -306,68 +308,165 @@ function ProductAutocomplete({
     methods: UseFormReturn<any>;
     append: (value: any) => void;
 }) {
-    const [keyword, setKeyword] = useState("");
-    const [debouncedKeyword, setDebouncedKeyword] = useState("");
+    const [inputValue, setInputValue] = useState("");
+    const [openQuickForm, setOpenQuickForm] = useState(false);
+    const [defaultName, setDefaultName] = useState("");
+    const [pendingSelectName, setPendingSelectName] = useState<string | null>(null);
 
-    const { products = [], productsLoading } = useGetProducts({
+    const {
+        products = [],
+        productsLoading,
+        mutation: mutateProducts
+    } = useGetProducts({
         pageNumber: 1,
         pageSize: 999,
-        key: debouncedKeyword,
+        key: inputValue,
     });
 
-    return (
-        <Field.Autocomplete
-            name={`items.${index}.product`}
-            placeholder="Chọn sản phẩm"
-            options={products}
-            loading={productsLoading}
-            getOptionLabel={(opt) => opt?.name ?? ""}
-            isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
-            // onInputChange={(_, value) => setKeyword(value)}
-            renderOption={(props, option) => (
-                <li {...props} key={option.id}>
-                    {option.name}
-                </li>
-            )}
-            value={
-                products.find(
-                    (p) => String(p.id) === String(methods.getValues(`items.${index}.product`))
-                ) || null
-            }
-            onChange={(_, newValue) => {
-                if (newValue) {
-                    const rowId = methods.getValues(`items.${index}.id`);
+    const currentProductId = methods.watch(`items.${index}.product`);
 
-                    methods.setValue(`items.${index}.product`, String(newValue.id), {
-                        shouldValidate: true,
-                    });
-                    methods.setValue(`items.${index}.id`, rowId);
-                    methods.setValue(
-                        `items.${index}.unit`,
-                        newValue.unitID != null ? String(newValue.unitID) : ""
-                    );
-                    methods.setValue(`items.${index}.unitName`, newValue.unit != null ? newValue.unit : "");
-                    methods.setValue(`items.${index}.price`, newValue.price ?? 0);
-                    methods.setValue(`items.${index}.vat`, newValue.vat ?? 0);
-                }
-                const productsArr = methods.getValues('items') || [];
-                const lastIndex = productsArr.length - 1;
-                if (index === lastIndex) {
-                    append({
-                        name: "",
-                        unit: "",
-                        qty: 1,
-                        price: 0,
-                        vat: 0,
-                    });
-                }
-            }}
-            noOptionsText="Không có dữ liệu"
-            fullWidth
-            sx={{ width: 500 }}
-        />
+    const currentProduct =
+        products.find(p => String(p.id) === String(currentProductId)) || null;
+
+    useEffect(() => {
+        if (currentProduct?.name) {
+            setInputValue(currentProduct.name);
+        }
+    }, [currentProduct?.id]);
+
+    useEffect(() => {
+        if (!pendingSelectName) return;
+        if (!products.length) return;
+
+        const found = products.find(
+            p => p.name.trim().toLowerCase() === pendingSelectName.trim().toLowerCase()
+        );
+
+        if (found) {
+            methods.setValue(`items.${index}.product`, String(found.id), { shouldValidate: true });
+
+            methods.setValue(`items.${index}.unit`, String(found.unitId || ""));
+            methods.setValue(`items.${index}.unitName`, found.unit || "");
+            methods.setValue(`items.${index}.price`, found.price ?? 0);
+            methods.setValue(`items.${index}.vat`, found.vat ?? 0);
+
+            setInputValue(found.name || "");
+            setPendingSelectName(null);
+
+            const items = methods.getValues("items") || [];
+            if (index === items.length - 1) {
+                append({ name: "", unit: "", qty: 1, price: 0, vat: 0 });
+            }
+        }
+    }, [products, pendingSelectName]);
+
+    const handleCreateNew = () => {
+        if (!inputValue.trim()) return;
+
+        setDefaultName(inputValue.trim());
+        setOpenQuickForm(true);
+    };
+
+    const handleProductSuccess = async () => {
+
+        setPendingSelectName(defaultName);
+
+        await mutateProducts?.();
+
+        setOpenQuickForm(false);
+        setDefaultName("");
+    };
+
+    return (
+        <Stack spacing={0.5}>
+            <Field.Autocomplete
+                name={`items.${index}.product`}
+                placeholder="Nhập hoặc chọn sản phẩm"
+
+                options={products}
+                loading={productsLoading}
+                freeSolo
+
+                value={currentProduct}
+                inputValue={inputValue}
+
+                filterOptions={(options) => options}
+
+                getOptionLabel={(opt) => {
+                    if (typeof opt === "string") return opt;
+                    return opt?.name ?? "";
+                }}
+
+                isOptionEqualToValue={(opt, val) => {
+                    if (!val) return false;
+                    return String(opt.id) === String(val.id);
+                }}
+
+                onInputChange={(_, value) => {
+                    setInputValue(value || "");
+                }}
+
+                onChange={(_, newValue) => {
+                    if (newValue && typeof newValue === "object") {
+                        methods.setValue(`items.${index}.product`, String(newValue.id), { shouldValidate: true });
+
+                        methods.setValue(`items.${index}.unit`, String(newValue.unitId || ""));
+                        methods.setValue(`items.${index}.unitName`, newValue.unit || "");
+                        methods.setValue(`items.${index}.price`, newValue.price ?? 0);
+                        methods.setValue(`items.${index}.vat`, newValue.vat ?? 0);
+
+                        setInputValue(newValue.name || "");
+                    }
+
+                    if (typeof newValue === "string") {
+                        setInputValue(newValue);
+                    }
+
+                    const items = methods.getValues("items") || [];
+                    if (index === items.length - 1) {
+                        append({ name: "", unit: "", qty: 1, price: 0, vat: 0 });
+                    }
+                }}
+
+                noOptionsText="Không có dữ liệu"
+                fullWidth
+                sx={{ width: 500 }}
+            />
+
+            {inputValue.length > 1 && !products.some(p =>
+                p.name.toLowerCase().includes(inputValue.toLowerCase())
+            ) && (
+                    <Typography variant="caption" color="error" sx={{ pl: 1 }}>
+                        Sản phẩm chưa tồn tại.{" "}
+                        <Button
+                            size="small"
+                            onClick={handleCreateNew}
+                            sx={{
+                                fontSize: "13px",
+                                p: 0,
+                                textDecoration: "underline",
+                                minWidth: "auto"
+                            }}
+                        >
+                            Thêm mới ngay
+                        </Button>
+                    </Typography>
+                )}
+
+            <ProductQuickNewForm
+                open={openQuickForm}
+                onClose={() => {
+                    setOpenQuickForm(false);
+                    setDefaultName("");
+                }}
+                defaultName={defaultName}
+                onSuccess={handleProductSuccess}
+            />
+        </Stack>
     );
 }
+
+
 
 function UnitSelection({
     index,
@@ -392,9 +491,7 @@ function UnitSelection({
                 const selectedUnit = units.find((u) => String(u.id) === selectedId);
                 const unitName = selectedUnit?.name ?? "";
                 methods.setValue(`items.${index}.unitName`, unitName);
-                // console.log(
-                //     methods.watch(`items.${index}.unitName`)
-                // );
+
             }}
             fullWidth
             sx={{ width: 100 }}
