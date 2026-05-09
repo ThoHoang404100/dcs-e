@@ -1,5 +1,5 @@
 import 'src/global.css';
-
+import 'react-resizable/css/styles.css';
 import { useEffect } from 'react';
 
 import { usePathname } from 'src/routes/hooks';
