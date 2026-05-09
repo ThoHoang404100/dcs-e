@@ -1,3 +1,405 @@
+// import { useForm, useFieldArray } from "react-hook-form";
+// import { zodResolver } from "@hookform/resolvers/zod";
+// import {
+//     Dialog,
+//     DialogTitle,
+//     DialogContent,
+//     Button,
+//     Stack,
+//     Typography,
+//     IconButton,
+//     Box,
+//     Divider,
+//     Tooltip,
+//     Grid,
+//     MenuItem,
+// } from "@mui/material";
+// import { Iconify } from "src/components/iconify";
+// import { Field, Form } from "src/components/hook-form";
+// import { useGetCustomers } from "src/actions/customer";
+// import { useDebounce } from "minimal-shared/hooks";
+// import { useEffect, useState, useMemo } from "react";
+// import { ICustomerItem } from "src/types/customer";
+// import {
+//     IQuotationItem,
+//     IQuotationDetails,
+//     IQuotationDetailDto,
+// } from "src/types/quotation";
+// import { QuotationItemsTable } from "./quotation-product-table";
+// import { QuotationFormValues, quotationSchema } from "./schema/quotation-schema";
+// import {
+//     addMoreProducts,
+//     createOrUpdateQuotation,
+//     editProductForm,
+//     useGetQuotation,
+// } from "src/actions/quotation";
+// import { editAllQuotationDetails } from "./helper/mapQuotationProduct";
+// import { toast } from "sonner";
+// import { generateQuotationNo } from "src/utils/random-func";
+// import { mutate } from "swr";
+// import { useAuthContext } from "src/auth/hooks";
+// import { mapProductsToItems } from "./helper/mapProductsToItems";
+// import { renderSkeleton } from "src/components/skeleton/skeleton-quotation-contract";
+// import { QuotationCustomerForm } from "./quotation-customer-form";
+
+// export type QuotationFormProps = {
+//     selectedQuotation: IQuotationItem | null;
+//     openForm: boolean;
+//     onClose: () => void;
+//     CopiedQuotation: IQuotationItem | null;
+// };
+
+// export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuotation }: QuotationFormProps) {
+//     const quotationId = selectedQuotation?.id ?? CopiedQuotation?.id ?? 0;
+//     const { user } = useAuthContext();
+
+//     const today = new Date();
+//     const nextMonth = new Date(today);
+//     nextMonth.setMonth(today.getMonth() + 1);
+
+//     const sampleNote = `
+// <p data-pm-slice="0 0 []">
+//     - Giá trên <strong>đã bao gồm thuế GTGT</strong><br>
+//     - Báo giá có giá trị trong 30 ngày<br>
+//     - Tạm ứng 50% giá trị hợp đồng, ngay khi ký hợp đồng<br>
+//     <strong>Ngân hàng Á Châu (ACB) - PGD Thảo Điền - TP.HCM</strong><br>
+//     <strong>Tên tài khoản: Công ty TNHH GIẢI PHÁP DCS</strong><br>
+//     <strong>Tài khoản số: 8100868</strong>
+// </p>
+// `;
+
+//     const [originalItems, setOriginalItems] = useState<IQuotationDetailDto[]>([]);
+//     const [totalPaid, setTotalPaid] = useState(0);
+//     const [customerkeyword, setCustomerKeyword] = useState('');
+//     const debouncedCustomerKw = useDebounce(customerkeyword, 300);
+//     const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
+//     const [quotationProductDetail, setQuotationProductDetail] = useState<IQuotationDetails>();
+
+//     const { quotation: CurrentQuotation, quotationLoading } = useGetQuotation({
+//         quotationId,
+//         pageNumber: 1,
+//         pageSize: 999,
+//         options: { enabled: !!quotationId }
+//     });
+
+//     const { customers, customersLoading, mutation: refetchCustomers } = useGetCustomers({
+//         pageNumber: 1,
+//         pageSize: 999,
+//         key: debouncedCustomerKw,
+//         enabled: openForm || !!selectedQuotation?.customerId
+//     });
+
+//     const [selectedCustomer, setSelectedCustomer] = useState<ICustomerItem | null>(null);
+
+//     const defaultValues: QuotationFormValues = {
+//         customer: 0,
+//         quotationNo: generateQuotationNo(),
+//         date: today.toISOString(),
+//         validUntil: nextMonth.toISOString(),
+//         status: 1,
+//         discount: 0,
+//         items: [{ id: undefined, product: "", unit: "", unitName: "", qty: 1, price: 0, vat: 0 }],
+//         notes: sampleNote,
+//         paid: 0,
+//         cusName: "",
+//         companyName: "",
+//         taxCode: "",
+//         phone: "",
+//         address: "",
+//     };
+
+//     const methods = useForm<QuotationFormValues>({
+//         mode: 'onSubmit',
+//         resolver: zodResolver(quotationSchema),
+//         defaultValues,
+//     });
+
+//     const { reset, watch, handleSubmit, control, formState: { isSubmitting } } = methods;
+//     const customerId = watch('customer');
+//     const watchItems = watch("items");
+
+//     const grandTotal = useMemo(() => {
+//         return watchItems?.reduce((acc, item) => {
+//             const qty = Number(item.qty) || 0;
+//             const price = Number(item.price) || 0;
+//             const vat = Number(item.vat) || 0;
+//             return acc + Math.round(qty * price * (1 + vat / 100));
+//         }, 0) || 0;
+//     }, [watchItems]);
+
+//     const formattedTotal = new Intl.NumberFormat('vi-VN').format(grandTotal) + 'đ';
+
+//     // Load data
+//     useEffect(() => {
+//         if (CopiedQuotation && CurrentQuotation) {
+//             const currentDetails = CurrentQuotation.items.find(q => q.quotationID === CopiedQuotation.id);
+//             setQuotationProductDetail(currentDetails);
+//             const mappedItems = mapProductsToItems(currentDetails?.products || []);
+
+//             reset({
+//                 ...defaultValues,
+//                 customer: CopiedQuotation.customerId ?? 0,
+//                 quotationNo: generateQuotationNo(),
+//                 date: today.toISOString(),
+//                 validUntil: nextMonth.toISOString(),
+//                 status: 1,
+//                 discount: CopiedQuotation.discount ?? 0,
+//                 items: mappedItems,
+//                 notes: CopiedQuotation.note ?? sampleNote,
+//                 paid: CopiedQuotation.paid ?? 0,
+//             });
+//             return;
+//         }
+
+//         if (!selectedQuotation) {
+//             reset(defaultValues);
+//             return;
+//         }
+
+//         if (!CurrentQuotation) return;
+
+//         const currentDetails = CurrentQuotation.items.find(q => q.quotationID === selectedQuotation.id);
+//         if (currentDetails) {
+//             setQuotationProductDetail(currentDetails);
+//             setOriginalItems(
+//                 (currentDetails.products || []).map((p, index) => ({
+//                     productID: p.productID,
+//                     quantity: p.quantity,
+//                     row: index + 1,
+//                     Unit: p.unit || "",
+//                     Price: p.price || 0,
+//                 }))
+//             );
+//         }
+
+//         const mappedItems = mapProductsToItems(currentDetails?.products || []);
+
+//         reset({
+//             customer: selectedQuotation.customerId ?? 0,
+//             quotationNo: selectedQuotation.quotationNo,
+//             date: selectedQuotation.createdDate ?? today.toISOString(),
+//             validUntil: selectedQuotation.expiryDate ?? nextMonth.toISOString(),
+//             status: selectedQuotation.status ?? 1,
+//             discount: selectedQuotation.discount ?? 0,
+//             items: mappedItems,
+//             notes: selectedQuotation.note ?? sampleNote,
+//             paid: selectedQuotation.paid ?? 0,
+//             cusName: "",
+//             companyName: "",
+//             taxCode: "",
+//             phone: "",
+//             address: "",
+//         });
+//     }, [selectedQuotation?.id, CopiedQuotation?.id, CurrentQuotation, reset]);
+
+//     useEffect(() => {
+//         if (!customerId) {
+//             setSelectedCustomer(null);
+//             return;
+//         }
+//         const found = customers.find((cus) => Number(cus.id) === Number(customerId));
+//         setSelectedCustomer(found || null);
+//     }, [customerId, customers]);
+
+//     const { fields, append, remove } = useFieldArray({ control, name: "items" });
+
+//     const onSubmit = handleSubmit(async (data: QuotationFormValues) => {
+//         try {
+//             const validItems = data.items.filter((item) => item.product && item.product !== "");
+
+//             const basePayload = {
+//                 quotationNo: data.quotationNo,
+//                 customerID: data.customer,
+//                 createDate: data.date,
+//                 expiryDate: data.validUntil,
+//                 discount: data.discount || 0,
+//                 note: data.notes || '',
+//                 paid: data.paid || 0,
+//                 Type: 'Quotation',
+//                 Status: data.status
+//             };
+
+//             const bodyPayload = {
+//                 ...basePayload,
+//                 quotationDetails: validItems.map((item, i) => ({
+//                     productID: String(item.product),           // ← Fix: ép về string
+//                     quantity: item.qty ?? 0,
+//                     row: i + 1,
+//                     Unit: item.unitName || "",
+//                     Price: item.price || 0,
+//                 })),
+//             };
+
+//             await createOrUpdateQuotation(
+//                 selectedQuotation?.id ?? null,
+//                 bodyPayload,
+//                 { ...basePayload, seller: user?.accessToken || "" }
+//             );
+
+//             if (selectedQuotation) {
+//                 for (const item of validItems) {
+//                     if (item.id) {
+//                         await editProductForm(item.id, {
+//                             rowId: item.id,
+//                             productId: Number(item.product),
+//                             price: item.price || 0,
+//                             quantity: item.qty || 0,
+//                             unit: item.unitName ?? "",
+//                         });
+//                     }
+//                 }
+
+//                 const newItems = bodyPayload.quotationDetails.filter(
+//                     (item) => !originalItems.some((o) => o.productID === item.productID)
+//                 );
+
+//                 if (newItems.length > 0) {
+//                     await addMoreProducts(selectedQuotation.id, newItems);
+//                 } else {
+//                     await editAllQuotationDetails(bodyPayload, selectedQuotation.id);
+//                 }
+//             }
+
+//             mutate((key) => typeof key === "string" && key.includes("/api/v1/quotation"));
+//             toast.success(selectedQuotation ? "Cập nhật thành công!" : "Tạo báo giá thành công!");
+//             onClose();
+//             reset(defaultValues);
+//         } catch (error: any) {
+//             toast.error(error.message || "Đã có lỗi xảy ra!");
+//         }
+//     });
+
+//     const renderDetails = () => (
+//         <Stack spacing={3}>
+//             <Grid container spacing={3}>
+//                 <Grid size={{ xs: 12, lg: 5 }}>
+//                     <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Thông tin khách hàng</Typography>
+//                     <Stack direction="row" gap={1.5} alignItems="flex-start" sx={{ mb: 2 }}>
+//                         <Field.Autocomplete
+//                             name="customer"
+//                             label="Mã khách hàng có sẵn *"
+//                             size="small"
+//                             options={customers}
+//                             loading={customersLoading}
+//                             getOptionLabel={(opt) => opt?.name || opt?.companyName || ''}
+//                             onInputChange={(_, value) => setCustomerKeyword(value)}
+//                             value={selectedCustomer}
+//                             fullWidth
+//                             onChange={(_, newValue) => {
+//                                 methods.setValue('customer', newValue?.id ?? 0, { shouldValidate: true });
+//                                 setCustomerKeyword(newValue?.name ?? '');
+//                             }}
+//                         />
+//                         <Tooltip title="Tạo khách hàng mới">
+//                             <IconButton color="primary" size="small" onClick={() => setIsCreatingCustomer(true)}>
+//                                 <Iconify icon="line-md:person-add" />
+//                             </IconButton>
+//                         </Tooltip>
+//                     </Stack>
+
+//                     <Grid container spacing={1.5}>
+//                         <Grid size={{ xs: 12, sm: 6 }}><Field.Text name="cusName" label="Tên khách hàng" size="small" fullWidth /></Grid>
+//                         <Grid size={{ xs: 12, sm: 6 }}><Field.Text name="companyName" label="Tên công ty" size="small" fullWidth /></Grid>
+//                         <Grid size={{ xs: 12, sm: 6 }}><Field.Text name="taxCode" label="Mã số thuế" size="small" fullWidth /></Grid>
+//                         <Grid size={{ xs: 12, sm: 6 }}><Field.Text name="phone" label="Số điện thoại" size="small" fullWidth /></Grid>
+//                         <Grid size={12}><Field.Text name="address" label="Địa chỉ" size="small" fullWidth multiline rows={2} /></Grid>
+//                     </Grid>
+//                 </Grid>
+
+//                 <Grid size={{ xs: 12, lg: 4 }}>
+//                     <Typography variant="subtitle2" sx={{ mb: 1 }}>Ghi chú</Typography>
+//                     <Field.Editor name="notes" sx={{ height: 145, fontSize: '0.875rem' }} />
+//                 </Grid>
+
+//                 <Grid size={{ xs: 12, lg: 3 }}>
+//                     <Grid container spacing={2} sx={{ height: '100%' }}>
+//                         <Grid size={12}>
+//                             <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Thông tin hợp đồng</Typography>
+//                             <Grid container spacing={1.2}>
+//                                 <Grid size={{ xs: 12, sm: 6 }}>
+//                                     <Field.Text name="quotationNo" label="Số hợp đồng" size="small" disabled={!!selectedQuotation} fullWidth />
+//                                 </Grid>
+//                                 <Grid size={{ xs: 12, sm: 6 }}>
+//                                     <Field.DatePicker name="validUntil" label="Ngày ký" />
+//                                 </Grid>
+//                                 <Grid size={{ xs: 12, sm: 6 }}>
+//                                     <Field.Select name="status" label="Trạng thái" size="small" fullWidth>
+//                                         <MenuItem value={1}>Nháp</MenuItem>
+//                                         <MenuItem value={2}>Đang thực hiện</MenuItem>
+//                                         <MenuItem value={3}>Hoàn thành</MenuItem>
+//                                     </Field.Select>
+//                                 </Grid>
+//                                 <Grid size={{ xs: 12, sm: 6 }}>
+//                                     <Field.DatePicker name="date" label="Ngày tạo" />
+//                                 </Grid>
+//                             </Grid>
+//                         </Grid>
+
+//                         <Grid size={12}>
+//                             <Box sx={{
+//                                 height: '100%', minHeight: 80, bgcolor: '#FFF7E6', border: '2px solid #FFE7BA',
+//                                 borderRadius: 2, p: 2.5, display: 'flex', flexDirection: 'column',
+//                                 justifyContent: 'center', alignItems: 'center', textAlign: 'center'
+//                             }}>
+//                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Tổng tiền thanh toán</Typography>
+//                                 <Typography sx={{ color: '#D97706', fontWeight: 800, fontSize: '1.6rem' }}>
+//                                     {formattedTotal}
+//                                 </Typography>
+//                             </Box>
+//                         </Grid>
+//                     </Grid>
+//                 </Grid>
+//             </Grid>
+
+//             <Divider />
+
+//             <Box sx={{ width: "100%" }}>
+//                 <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Hàng tiền</Typography>
+//                 <QuotationItemsTable
+//                     idQuotation={selectedQuotation?.id}
+//                     quotationProductDetail={quotationProductDetail}
+//                     methods={methods}
+//                     fields={fields}
+//                     append={append}
+//                     remove={remove}
+//                     setPaid={setTotalPaid}
+//                 />
+//             </Box>
+//         </Stack>
+//     );
+
+//     return (
+//         <Dialog open={openForm} onClose={onClose} fullScreen>
+//             <Form methods={methods} onSubmit={onSubmit} style={{ height: '100%' }}>
+//                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #ddd', py: 2, px: 3 }}>
+//                     <Typography variant="h6">
+//                         {selectedQuotation ? "CHỈNH SỬA BÁO GIÁ" : "TẠO BÁO GIÁ"}
+//                     </Typography>
+//                     <Stack direction="row" spacing={2}>
+//                         <Button variant="outlined" onClick={onClose} size="small">Hủy</Button>
+//                         <Button type="submit" variant="contained" loading={isSubmitting} size="small">Lưu</Button>
+//                     </Stack>
+//                 </DialogTitle>
+
+//                 <DialogContent sx={{ p: 3, overflowY: 'auto' }}>
+//                     {quotationLoading ? renderSkeleton() : renderDetails()}
+//                 </DialogContent>
+//             </Form>
+
+//             <QuotationCustomerForm
+//                 openChild={isCreatingCustomer}
+//                 setOpenChild={setIsCreatingCustomer}
+//                 methodsQuotation={methods}
+//                 setCustomerKeyword={setCustomerKeyword}
+//                 setSelectedCustomer={setSelectedCustomer}
+//                 refetchCustomers={refetchCustomers}
+//             />
+//         </Dialog>
+//     );
+// }
+
+
+
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -9,10 +411,10 @@ import {
     Typography,
     IconButton,
     Box,
-    MenuItem,
     Divider,
     Tooltip,
     Grid,
+    MenuItem,
 } from "@mui/material";
 import { Iconify } from "src/components/iconify";
 import { Field, Form } from "src/components/hook-form";
@@ -21,12 +423,9 @@ import { useDebounce } from "minimal-shared/hooks";
 import { useEffect, useState, useMemo } from "react";
 import { ICustomerItem } from "src/types/customer";
 import {
-    IProductFormEdit,
-    IQuotationDao,
-    IQuotationDetailDto,
+    IQuotationItem,
     IQuotationDetails,
-    IQuotationDto,
-    IQuotationItem
+    IQuotationDetailDto,
 } from "src/types/quotation";
 import { QuotationItemsTable } from "./quotation-product-table";
 import { QuotationFormValues, quotationSchema } from "./schema/quotation-schema";
@@ -35,18 +434,15 @@ import {
     createOrUpdateQuotation,
     editProductForm,
     useGetQuotation,
-
 } from "src/actions/quotation";
 import { editAllQuotationDetails } from "./helper/mapQuotationProduct";
 import { toast } from "sonner";
 import { generateQuotationNo } from "src/utils/random-func";
 import { mutate } from "swr";
-import { endpoints } from "src/lib/axios";
-import { QuotationCustomerForm } from "./quotation-customer-form";
 import { useAuthContext } from "src/auth/hooks";
 import { mapProductsToItems } from "./helper/mapProductsToItems";
 import { renderSkeleton } from "src/components/skeleton/skeleton-quotation-contract";
-import { useWatch } from "react-hook-form";
+import { QuotationCustomerForm } from "./quotation-customer-form";
 
 export type QuotationFormProps = {
     selectedQuotation: IQuotationItem | null;
@@ -58,8 +454,9 @@ export type QuotationFormProps = {
 export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuotation }: QuotationFormProps) {
     const quotationId = selectedQuotation?.id ?? CopiedQuotation?.id ?? 0;
     const { user } = useAuthContext();
+
     const today = new Date();
-    const nextMonth = new Date();
+    const nextMonth = new Date(today);
     nextMonth.setMonth(today.getMonth() + 1);
 
     const sampleNote = `
@@ -84,7 +481,7 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
         quotationId,
         pageNumber: 1,
         pageSize: 999,
-        options: { enabled: !!selectedQuotation?.id }
+        options: { enabled: !!quotationId }
     });
 
     const { customers, customersLoading, mutation: refetchCustomers } = useGetCustomers({
@@ -119,12 +516,9 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
         defaultValues,
     });
 
-    const { reset, watch, setValue, handleSubmit, control, formState: { isSubmitting } } = methods;
+    const { reset, watch, setValue, handleSubmit, control, formState: { isSubmitting } } = methods;  // ← Đã thêm setValue
     const customerId = watch('customer');
-    const watchItems = useWatch({
-        control,
-        name: "items",
-    });
+    const watchItems = watch("items");
 
     const grandTotal = useMemo(() => {
         return watchItems?.reduce((acc, item) => {
@@ -135,9 +529,7 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
         }, 0) || 0;
     }, [watchItems]);
 
-
     const formattedTotal = new Intl.NumberFormat('vi-VN').format(grandTotal) + 'đ';
-    const isLong = formattedTotal.length > 10;
 
     useEffect(() => {
         if (!selectedCustomer) return;
@@ -149,19 +541,19 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
     }, [selectedCustomer, setValue]);
 
     useEffect(() => {
-        if (CopiedQuotation) {
-            if (!CurrentQuotation) return;
+        if (CopiedQuotation && CurrentQuotation) {
             const currentDetails = CurrentQuotation.items.find(q => q.quotationID === CopiedQuotation.id);
             setQuotationProductDetail(currentDetails);
             const mappedItems = mapProductsToItems(currentDetails?.products || []);
-            methods.reset({
+
+            reset({
                 ...defaultValues,
                 customer: CopiedQuotation.customerId ?? 0,
                 quotationNo: generateQuotationNo(),
                 date: today.toISOString(),
                 validUntil: nextMonth.toISOString(),
                 status: 1,
-                discount: CopiedQuotation.discount,
+                discount: CopiedQuotation.discount ?? 0,
                 items: mappedItems,
                 notes: CopiedQuotation.note ?? sampleNote,
                 paid: CopiedQuotation.paid ?? 0,
@@ -170,26 +562,43 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
         }
 
         if (!selectedQuotation) {
-            methods.reset(defaultValues);
+            reset(defaultValues);
             return;
         }
 
         if (!CurrentQuotation) return;
 
         const currentDetails = CurrentQuotation.items.find(q => q.quotationID === selectedQuotation.id);
-        if (currentDetails) setQuotationProductDetail(currentDetails);
+        if (currentDetails) {
+            setQuotationProductDetail(currentDetails);
+            setOriginalItems((currentDetails.products || []).map((p, index) => ({
+                productID: p.productID,
+                quantity: p.quantity,
+                row: index + 1,
+                Unit: p.unit || "",
+                Price: p.price || 0,
+            })));
+        }
 
         const mappedItems = mapProductsToItems(currentDetails?.products || []);
-        methods.setValue("customer", selectedQuotation.customerId ?? 0);
-        methods.setValue("quotationNo", selectedQuotation.quotationNo);
-        methods.setValue("date", selectedQuotation.createdDate ?? null);
-        methods.setValue("validUntil", selectedQuotation.expiryDate ?? null);
-        methods.setValue("status", selectedQuotation.status ?? 1);
-        methods.setValue("items", mappedItems);
-        methods.setValue("notes", selectedQuotation.note ?? "");
-        methods.setValue("discount", selectedQuotation.discount);
-        methods.setValue("paid", selectedQuotation.paid);
-    }, [selectedQuotation, CopiedQuotation, CurrentQuotation, methods]);
+
+        reset({
+            customer: selectedQuotation.customerId ?? 0,
+            quotationNo: selectedQuotation.quotationNo,
+            date: selectedQuotation.createdDate ?? today.toISOString(),
+            validUntil: selectedQuotation.expiryDate ?? nextMonth.toISOString(),
+            status: selectedQuotation.status ?? 1,
+            discount: selectedQuotation.discount ?? 0,
+            items: mappedItems,
+            notes: selectedQuotation.note ?? sampleNote,
+            paid: selectedQuotation.paid ?? 0,
+            cusName: "",
+            companyName: "",
+            taxCode: "",
+            phone: "",
+            address: "",
+        });
+    }, [selectedQuotation?.id, CopiedQuotation?.id, CurrentQuotation, reset]);
 
     useEffect(() => {
         if (!customerId) {
@@ -204,6 +613,8 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
 
     const onSubmit = handleSubmit(async (data: QuotationFormValues) => {
         try {
+            const validItems = data.items.filter((item) => item.product && item.product !== "");
+
             const basePayload = {
                 quotationNo: data.quotationNo,
                 customerID: data.customer,
@@ -216,41 +627,34 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                 Status: data.status
             };
 
-            const bodyPayload: IQuotationDto = {
+            const bodyPayload = {
                 ...basePayload,
-                quotationDetails: data.items
-                    .filter((item) => item.product && item.product !== "")
-                    .map((item, i) => ({
-                        productID: item.product ?? "",
-                        quantity: item.qty ?? 0,
-                        row: i + 1,
-                        Unit: item.unitName || "",
-                        Price: item.price || 0,
-                    })),
-            };
-
-            const updatePayload: IQuotationDao = {
-                ...basePayload,
-                seller: user?.accessToken || "",
+                quotationDetails: validItems.map((item, i) => ({
+                    productID: String(item.product),
+                    quantity: item.qty ?? 0,
+                    row: i + 1,
+                    Unit: item.unitName || "",
+                    Price: item.price || 0,
+                })),
             };
 
             await createOrUpdateQuotation(
                 selectedQuotation?.id ?? null,
                 bodyPayload,
-                updatePayload
+                { ...basePayload, seller: user?.accessToken || "" }
             );
 
             if (selectedQuotation) {
-                const productPayload: IProductFormEdit[] = data.items.map((item) => ({
-                    rowId: item.id,
-                    productId: Number(item.product),
-                    price: item.price || 0,
-                    quantity: item.qty || 0,
-                    unit: item.unitName ?? "",
-                }));
-
-                for (const item of productPayload) {
-                    await editProductForm(item.rowId, item);
+                for (const item of validItems) {
+                    if (item.id) {
+                        await editProductForm(item.id, {
+                            rowId: item.id,
+                            productId: Number(item.product),
+                            price: item.price || 0,
+                            quantity: item.qty || 0,
+                            unit: item.unitName ?? "",
+                        });
+                    }
                 }
 
                 const newItems = bodyPayload.quotationDetails.filter(
@@ -264,33 +668,23 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                 }
             }
 
-            mutate((key) =>
-                typeof key === "string" &&
-                key.includes("/api/v1/quotation")
-            );
-
-            toast.success(
-                selectedQuotation
-                    ? "Dữ liệu đã được thay đổi!"
-                    : "Tạo hợp đồng thành công!"
-            );
-
+            mutate((key) => typeof key === "string" && key.includes("/api/v1/quotation"));
+            toast.success(selectedQuotation ? "Cập nhật thành công!" : "Tạo báo giá thành công!");
             onClose();
             reset(defaultValues);
-
         } catch (error: any) {
             toast.error(error.message || "Đã có lỗi xảy ra!");
         }
     });
 
-
     const renderDetails = () => (
-        <Stack spacing={3}>
-            <Grid container spacing={3}>
+        <Stack spacing={2.5}>
+            <Grid container spacing={2}>
                 <Grid size={{ xs: 12, lg: 5 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Thông tin khách hàng</Typography>
-
-                    <Stack direction="row" gap={1.5} alignItems="flex-start" sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, fontSize: '0.95rem' }}>
+                        Thông tin khách hàng
+                    </Typography>
+                    <Stack direction="row" gap={1} alignItems="flex-start" sx={{ mb: 1.5 }}>
                         <Field.Autocomplete
                             name="customer"
                             label="Mã khách hàng có sẵn *"
@@ -313,122 +707,63 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                         </Tooltip>
                     </Stack>
 
-                    <Grid container spacing={1.5}>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <Field.Text name="cusName" label="Tên khách hàng" size="small" fullWidth />
-                        </Grid>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <Field.Text name="companyName" label="Tên công ty" size="small" fullWidth />
-                        </Grid>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <Field.Text name="taxCode" label="Mã số thuế" size="small" fullWidth />
-                        </Grid>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <Field.Text name="phone" label="Số điện thoại" size="small" fullWidth />
-                        </Grid>
-                        <Grid size={12}>
-                            <Field.Text name="address" label="Địa chỉ" size="small" fullWidth multiline rows={2} />
-                        </Grid>
+                    <Grid container spacing={1}>
+                        <Grid size={{ xs: 12, sm: 6 }}><Field.Text name="cusName" label="Tên KH" size="small" fullWidth /></Grid>
+                        <Grid size={{ xs: 12, sm: 6 }}><Field.Text name="companyName" label="Tên công ty" size="small" fullWidth /></Grid>
+                        <Grid size={{ xs: 12, sm: 6 }}><Field.Text name="taxCode" label="Mã số thuế" size="small" fullWidth /></Grid>
+                        <Grid size={{ xs: 12, sm: 6 }}><Field.Text name="phone" label="Điện thoại" size="small" fullWidth /></Grid>
+                        <Grid size={12}><Field.Text name="address" label="Địa chỉ" size="small" fullWidth multiline rows={2} /></Grid>
                     </Grid>
                 </Grid>
 
                 <Grid size={{ xs: 12, lg: 4 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>Ghi chú</Typography>
-                    <Field.Editor
-                        name="notes"
-                        sx={{ height: 145, fontSize: '0.875rem' }}
-                    />
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontSize: '0.95rem' }}>Ghi chú</Typography>
+                    <Field.Editor name="notes" sx={{ height: 125, fontSize: '0.85rem' }} />
                 </Grid>
 
-
-
                 <Grid size={{ xs: 12, lg: 3 }}>
-                    <Grid container spacing={2} sx={{ height: '100%' }}>
-
-                        <Grid size={{ xs: 12 }}>
-                            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
+                    <Grid container spacing={1.5} sx={{ height: '100%' }}>
+                        <Grid size={12}>
+                            <Typography variant="subtitle2" sx={{ mb: 1, fontSize: '0.95rem', fontWeight: 600 }}>
                                 Thông tin hợp đồng
                             </Typography>
-
-                            <Grid container spacing={1.2}>
+                            <Grid container spacing={1}>
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Field.Text
-                                        name="quotationNo"
-                                        label="Số hợp đồng"
-                                        size="small"
-                                        disabled={!!selectedQuotation}
-                                        fullWidth
-                                    />
+                                    <Field.Text name="quotationNo" label="Số hợp đồng" size="small" disabled={!!selectedQuotation} fullWidth />
                                 </Grid>
-
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Field.DatePicker
-                                        name="validUntil"
-                                        label="Ngày ký"
-                                    />
+                                    <Field.DatePicker name="validUntil" label="Ngày ký" />
                                 </Grid>
-
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Field.Select
-                                        name="status"
-                                        label="Trạng thái"
-                                        size="small"
-                                        fullWidth
-                                    >
+                                    <Field.Select name="status" label="Trạng thái" size="small" fullWidth>
                                         <MenuItem value={1}>Nháp</MenuItem>
                                         <MenuItem value={2}>Đang thực hiện</MenuItem>
                                         <MenuItem value={3}>Hoàn thành</MenuItem>
                                     </Field.Select>
                                 </Grid>
-
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Field.DatePicker
-                                        name="date"
-                                        label="Ngày tạo"
-                                    />
+                                    <Field.DatePicker name="date" label="Ngày tạo" />
                                 </Grid>
                             </Grid>
                         </Grid>
 
-                        <Grid size={{ xs: 12 }}>
-                            <Box
-                                sx={{
-                                    height: '100%',
-                                    minHeight: 80,
-                                    bgcolor: '#FFF7E6',
-                                    border: '2px solid #FFE7BA',
-                                    borderRadius: 2,
-                                    p: 2.5,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    textAlign: 'center',
-                                    overflow: 'hidden',
-                                }}
-                            >
-                                <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    sx={{ mb: 1, fontSize: '0.85rem' }}
-                                >
+                        <Grid size={12}>
+                            <Box sx={{
+                                bgcolor: '#FFF7E6',
+                                border: '2px solid #FFE7BA',
+                                borderRadius: 2,
+                                p: 2,
+                                textAlign: 'center',
+                                minHeight: 82,
+                            }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
                                     Tổng tiền thanh toán
                                 </Typography>
-
-                                <Typography
-                                    sx={{
-                                        color: '#D97706',
-                                        fontWeight: 800,
-                                        fontSize: 'clamp(1rem, 2.5vw, 1.8rem)',
-                                        whiteSpace: 'nowrap',
-                                        maxWidth: '100%',
-                                    }}
-                                >
+                                <Typography sx={{ color: '#D97706', fontWeight: 800, fontSize: '1.45rem' }}>
                                     {formattedTotal}
                                 </Typography>
                             </Box>
                         </Grid>
-
                     </Grid>
                 </Grid>
             </Grid>
@@ -436,10 +771,10 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
             <Divider />
 
             <Box sx={{ width: "100%" }}>
-                <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>Hàng tiền</Typography>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Hàng tiền</Typography>
                 <QuotationItemsTable
-                    quotationProductDetail={quotationProductDetail}
                     idQuotation={selectedQuotation?.id}
+                    quotationProductDetail={quotationProductDetail}
                     methods={methods}
                     fields={fields}
                     append={append}
@@ -458,17 +793,19 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     borderBottom: '1px solid #ddd',
-                    py: 2,
+                    py: 1.5,
                     px: 3
                 }}>
-                    <Typography variant="h6">TẠO HỢP ĐỒNG</Typography>
-                    <Stack direction="row" spacing={2}>
+                    <Typography variant="h6" fontSize="1.1rem">
+                        {selectedQuotation ? "CHỈNH SỬA BÁO GIÁ" : "TẠO BÁO GIÁ"}
+                    </Typography>
+                    <Stack direction="row" spacing={1.5}>
                         <Button variant="outlined" onClick={onClose} size="small">Hủy</Button>
-                        <Button sx={{ backgroundColor: (Theme) => Theme.palette.primary.main }} type="submit" variant="contained" loading={isSubmitting} size="small">Lưu</Button>
+                        <Button type="submit" variant="contained" loading={isSubmitting} size="small">Lưu</Button>
                     </Stack>
                 </DialogTitle>
 
-                <DialogContent sx={{ p: 3, overflowY: 'auto' }}>
+                <DialogContent sx={{ p: 2.5, overflowY: 'auto' }}>
                     {quotationLoading ? renderSkeleton() : renderDetails()}
                 </DialogContent>
             </Form>
