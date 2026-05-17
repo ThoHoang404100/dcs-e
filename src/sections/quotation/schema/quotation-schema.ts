@@ -134,6 +134,7 @@ export const quotationSchema = z.object({
     taxCode: z.string().optional(),
     phone: z.string().optional(),
     address: z.string().optional(),
+    nickName: z.string().optional(),
 
     items: customItemsSchema,
 
