@@ -76,6 +76,7 @@ export function ContractCustomerForm({ openChild, setOpenChild, setCustomerKeywo
                 taxCode: dataCreated.taxCode ?? '',
                 companyName: dataCreated.companyName ?? '',
                 email: dataCreated.email ?? '',
+                nickName: dataCreated.nickName ?? '',
                 bankAccount: dataCreated.bankAccount ?? '',
                 bankName: dataCreated.bankName ?? '',
                 address: dataCreated.address ?? '',

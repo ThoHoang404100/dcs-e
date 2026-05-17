@@ -56,6 +56,7 @@ export function QuotationCustomerForm({
                 name: data.name ?? '',
                 taxCode: data.taxCode ?? '',
                 companyName: data.companyName ?? '',
+                nickName: data.nickName ?? '',
                 email: '',
                 bankAccount: '',
                 bankName: '',
@@ -63,7 +64,8 @@ export function QuotationCustomerForm({
                 isPartner: false,
                 rewardPoint: 0,
                 balance: 0,
-                position: ''
+                position: '',
+
             };
 
             const { data: dataCreated } = await createOrUpdateCustomer(undefined, payloadData);
@@ -76,6 +78,7 @@ export function QuotationCustomerForm({
                 taxCode: dataCreated.taxCode ?? '',
                 companyName: dataCreated.companyName ?? '',
                 email: dataCreated.email ?? '',
+                nickName: dataCreated.nickName ?? '',
                 bankAccount: dataCreated.bankAccount ?? '',
                 bankName: dataCreated.bankName ?? '',
                 address: dataCreated.address ?? '',

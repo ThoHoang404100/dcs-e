@@ -19,6 +19,7 @@ export type ICustomerItem = {
     taxCode: string;
     companyName: string;
     email: string;
+    nickName: string;
     bankAccount: string;
     bankName: string;
     address: string;
@@ -47,4 +48,5 @@ export type ICustomerDto = {
     rewardPoint: number;
     balance: number;
     position: string;
+    nickName?: string;
 }

@@ -1,373 +1,37 @@
-// import { UseFieldArrayRemove, UseFormReturn, useWatch } from "react-hook-form";
-// import { useEffect, useState, useMemo } from "react";
-// import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from "@mui/material";
-// import { Field } from "src/components/hook-form";
-// import { fCurrency, fRenderTextNumber } from "src/utils/format-number";
-// import { Iconify } from "src/components/iconify";
-// import { useGetProducts } from "src/actions/product";
-// import { QuotationFormValues } from "./schema/quotation-schema";
-// import { useGetUnits } from "src/actions/unit";
-// import { capitalizeFirstLetter } from "src/utils/format-string";
-// import { toast } from "sonner";
-// import { deleteProductSelected } from "src/actions/quotation";
-// import { useBoolean } from "minimal-shared/hooks";
-// import { mutate } from "swr";
-// import { endpoints } from "src/lib/axios";
-// import { IQuotationDetails } from "src/types/quotation";
-// import { ProductQuickNewForm } from "./ProductQuickNewForm";
-// import { ProductItem } from "src/types/product";
-
-// type QuotationItemsTableProps = {
-//     idQuotation: number | undefined;
-//     quotationProductDetail: IQuotationDetails | undefined;
-//     methods: UseFormReturn<QuotationFormValues>;
-//     fields: any[];
-//     remove: UseFieldArrayRemove;
-//     append: (value: any) => void;
-//     setPaid: (value: any) => void;
-// };
-
-// export function QuotationItemsTable({
-//     idQuotation,
-//     quotationProductDetail,
-//     methods,
-//     fields,
-//     remove,
-//     append,
-//     setPaid
-// }: QuotationItemsTableProps) {
-//     const items = useWatch({
-//         control: methods.control,
-//         name: "items",
-//     }) as QuotationFormValues["items"];
-
-//     const discount = useWatch({
-//         control: methods.control,
-//         name: "discount",
-//     }) as number | undefined;
-
-//     const calcAmount = (item: { qty?: number; price?: number; vat?: number }) => {
-//         const qty = Number(item?.qty) || 0;
-//         const price = Number(item?.price) || 0;
-//         const vat = Number(item?.vat) || 0;
-//         return Math.round(qty * price * (1 + vat / 100));
-//     };
-
-//     const total = (items || []).reduce((acc, i) => acc + calcAmount(i), 0);
-//     const roundedTotal = Math.round(total);
-
-//     const openDel = useBoolean();
-//     const [indexField, setIndexField] = useState(0);
-//     const [productIDSelected, setProductIDSelected] = useState<number[]>([]);
-
-//     useEffect(() => {
-//         setPaid(roundedTotal);
-//     }, [roundedTotal, setPaid]);
-
-//     const deleteEachProduct = async () => {
-//         try {
-//             if (!idQuotation) return;
-//             if (fields.length <= 1) {
-//                 toast.warning("Phiếu báo giá phải có ít nhất 1 sản phẩm");
-//                 openDel.onFalse();
-//                 return;
-//             }
-
-//             await deleteProductSelected({
-//                 productID: productIDSelected,
-//                 quotationID: String(idQuotation)
-//             });
-//             remove(indexField);
-//             toast.success("Đã xóa sản phẩm");
-//             openDel.onFalse();
-
-//             mutate((k) => typeof k === "string" && k.startsWith("/api/v1/quotation/quotations"));
-//             mutate(endpoints.quotation.detail(idQuotation, `?pageNumber=1&pageSize=999`));
-//         } catch (error: any) {
-//             toast.error(error.message || "Đã có lỗi xảy ra!");
-//         }
-//     };
-
-//     const confirmDeleteUpdateProduct = () => (
-//         <Dialog open={openDel.value} onClose={openDel.onFalse} maxWidth="sm" fullWidth>
-//             <DialogTitle>Xác nhận xóa sản phẩm?</DialogTitle>
-//             <DialogContent>
-//                 <Stack direction="row" spacing={1} alignItems="center">
-//                     <Iconify icon="gridicons:notice" color="#4dd217" />
-//                     <Stack>
-//                         <Typography variant="body2" color="warning">- Sản phẩm sẽ bị xóa khỏi phiếu báo giá này</Typography>
-//                         <Typography variant="overline" color="error">- Không thể hoàn tác</Typography>
-//                     </Stack>
-//                 </Stack>
-//             </DialogContent>
-//             <DialogActions>
-//                 <Stack direction="row" spacing={2} width="100%">
-//                     <Button variant="outlined" onClick={openDel.onFalse} fullWidth>Hủy</Button>
-//                     <Button variant="contained" color="error" onClick={deleteEachProduct} fullWidth>Xóa</Button>
-//                 </Stack>
-//             </DialogActions>
-//         </Dialog>
-//     );
-
-//     return (
-//         <>
-//             <Stack spacing={2}>
-//                 <TableContainer component={Paper} sx={{ maxHeight: 600, overflow: "auto" }}>
-//                     <Table size="small" stickyHeader>
-//                         <TableHead>
-//                             <TableRow>
-//                                 <TableCell width={50}>STT</TableCell>
-//                                 <TableCell>Tên SP</TableCell>
-//                                 <TableCell width={150}>Số lượng</TableCell>
-//                                 <TableCell width={150}>Đơn giá</TableCell>
-//                                 <TableCell width={150}>Đơn vị tính</TableCell>
-//                                 <TableCell width={100}>VAT</TableCell>
-//                                 <TableCell width={150}>Thành tiền</TableCell>
-//                                 <TableCell width={80}></TableCell>
-//                             </TableRow>
-//                         </TableHead>
-//                         <TableBody>
-//                             {fields.map((field, index) => (
-//                                 <TableRow key={field.id}>
-//                                     <TableCell>{index + 1}</TableCell>
-//                                     <TableCell>
-//                                         <ProductAutocomplete index={index} methods={methods} append={append} />
-//                                     </TableCell>
-//                                     <TableCell>
-//                                         <Field.NumberInput name={`items.${index}.qty`} sx={{ width: 100 }} />
-//                                     </TableCell>
-//                                     <TableCell>
-//                                         <Field.VNCUrrenInputResizable name={`items.${index}.price`} sx={{ width: 100 }} />
-//                                     </TableCell>
-//                                     <TableCell>
-//                                         <UnitSelection index={index} methods={methods} />
-//                                     </TableCell>
-//                                     <TableCell>
-//                                         <Typography variant="body2">
-//                                             {items?.[index]?.vat != null ? `${items[index].vat}%` : ""}
-//                                         </Typography>
-//                                     </TableCell>
-//                                     <TableCell>
-//                                         <Typography fontWeight="bold">
-//                                             {fCurrency(calcAmount(items[index]))}
-//                                         </Typography>
-//                                     </TableCell>
-//                                     <TableCell>
-//                                         <Tooltip title="Xóa" arrow>
-//                                             <IconButton 
-//                                                 color="error"
-//                                                 onClick={() => {
-//                                                     if (idQuotation) {
-//                                                         const prodId = Number(methods.getValues(`items.${index}.product`));
-//                                                         const exists = quotationProductDetail?.products?.some(
-//                                                             p => Number(p.productID) === prodId
-//                                                         );
-//                                                         if (exists) {
-//                                                             setProductIDSelected([prodId]);
-//                                                             setIndexField(index);
-//                                                             openDel.onTrue();
-//                                                         } else {
-//                                                             remove(index);
-//                                                         }
-//                                                     } else {
-//                                                         remove(index);
-//                                                     }
-//                                                 }}
-//                                             >
-//                                                 <Iconify icon="material-symbols:scan-delete-outline-sharp" />
-//                                             </IconButton>
-//                                         </Tooltip>
-//                                     </TableCell>
-//                                 </TableRow>
-//                             ))}
-//                         </TableBody>
-//                     </Table>
-//                 </TableContainer>
-
-//                 <Button
-//                     variant="outlined"
-//                     startIcon={<Iconify icon="gridicons:add" />}
-//                     onClick={() => append({ product: "", unit: "", unitName: "", qty: 1, price: 0, vat: 0 })}
-//                 >
-//                     Thêm sản phẩm
-//                 </Button>
-//             </Stack>
-
-//             {confirmDeleteUpdateProduct()}
-//         </>
-//     );
-// }
-
-// // ==================== PRODUCT AUTOCOMPLETE - FIXED ====================
-// function ProductAutocomplete({
-//     index,
-//     methods,
-//     append,
-// }: {
-//     index: number;
-//     methods: UseFormReturn<any>;
-//     append: (value: any) => void;
-// }) {
-//     const [inputValue, setInputValue] = useState("");
-//     const [openQuickForm, setOpenQuickForm] = useState(false);
-//     const [defaultName, setDefaultName] = useState("");
-
-//     const {
-//         products = [],
-//         productsLoading,
-//         mutation: mutateProducts,
-//     } = useGetProducts({
-//         pageNumber: 1,
-//         pageSize: 999,
-//         key: inputValue,
-//     });
-
-//     const currentProductId = methods.watch(`items.${index}.product`);
-
-//     const currentProduct = useMemo(() => {
-//         if (!currentProductId) return null;
-//         return products.find((p) => String(p.id) === String(currentProductId)) || null;
-//     }, [products, currentProductId]);
-
-//     // Fix hiển thị tên sản phẩm khi load/edit
-//     useEffect(() => {
-//         if (currentProduct?.name) {
-//             setInputValue(currentProduct.name);
-//         }
-//     }, [currentProduct]);
-
-//     const updateFormValues = (product: ProductItem) => {
-//         methods.setValue(`items.${index}.product`, String(product.id), { shouldValidate: true });
-//         methods.setValue(`items.${index}.unit`, String(product.unitID || ""));
-//         methods.setValue(`items.${index}.unitName`, product.unit || "");
-//         methods.setValue(`items.${index}.price`, product.price ?? 0);
-//         methods.setValue(`items.${index}.vat`, product.vat ?? 0);
-
-//         setInputValue(product.name || "");
-
-//         const currentItems = methods.getValues("items") || [];
-//         if (index === currentItems.length - 1) {
-//             append({ product: "", unit: "", unitName: "", qty: 1, price: 0, vat: 0 });
-//         }
-//     };
-
-//     const handleCreateNew = () => {
-//         if (!inputValue.trim()) return;
-//         setDefaultName(inputValue.trim());
-//         setOpenQuickForm(true);
-//     };
-
-//     const handleProductSuccess = async () => {
-//         await mutateProducts?.();
-//         setOpenQuickForm(false);
-//         setDefaultName("");
-//     };
-
-//     return (
-//         <Stack spacing={0.5}>
-//             <Field.Autocomplete
-//                 name={`items.${index}.product`}
-//                 options={products}
-//                 loading={productsLoading}
-//                 freeSolo
-//                 value={currentProduct}
-//                 inputValue={inputValue}
-//                 getOptionLabel={(opt: any) => (typeof opt === "string" ? opt : opt?.name ?? "")}
-//                 isOptionEqualToValue={(option: any, value: any) => 
-//                     String(option?.id) === String(value?.id)
-//                 }
-//                 onInputChange={(_, newInputValue) => setInputValue(newInputValue || "")}
-//                 onChange={(_, newValue: any) => {
-//                     if (newValue && typeof newValue === "object") {
-//                         updateFormValues(newValue as ProductItem);
-//                     } else if (typeof newValue === "string") {
-//                         setInputValue(newValue);
-//                     } else {
-//                         setInputValue("");
-//                         methods.setValue(`items.${index}.product`, "");
-//                     }
-//                 }}
-//                 placeholder="Nhập hoặc chọn sản phẩm"
-//                 fullWidth
-//                 size="small"
-//             />
-
-//             {inputValue.length > 1 && 
-//              !products.some((p) => p.name.toLowerCase().includes(inputValue.toLowerCase())) && (
-//                 <Typography variant="caption" color="error" sx={{ pl: 1 }}>
-//                     Sản phẩm chưa tồn tại.{" "}
-//                     <Button 
-//                         size="small" 
-//                         onClick={handleCreateNew}
-//                         sx={{ fontSize: "13px", p: 0, textDecoration: "underline" }}
-//                     >
-//                         Thêm mới ngay
-//                     </Button>
-//                 </Typography>
-//             )}
-
-//             <ProductQuickNewForm
-//                 open={openQuickForm}
-//                 onClose={() => {
-//                     setOpenQuickForm(false);
-//                     setDefaultName("");
-//                 }}
-//                 defaultName={defaultName}
-//                 onSuccess={handleProductSuccess}
-//             />
-//         </Stack>
-//     );
-// }
-
-// // ==================== UNIT SELECTION ====================
-// function UnitSelection({
-//     index,
-//     methods,
-// }: {
-//     index: number;
-//     methods: UseFormReturn<any>;
-// }) {
-//     const { units = [], unitsLoading } = useGetUnits({ pageNumber: 1, pageSize: 999 });
-
-//     return (
-//         <Field.Select
-//             name={`items.${index}.unit`}
-//             size="small"
-//             fullWidth
-//             sx={{ width: 120 }}
-//         >
-//             {unitsLoading ? (
-//                 <MenuItem disabled>Đang tải...</MenuItem>
-//             ) : (
-//                 units.map((u) => (
-//                     <MenuItem key={u.id} value={String(u.id)}>
-//                         {u.name}
-//                     </MenuItem>
-//                 ))
-//             )}
-//         </Field.Select>
-//     );
-// }
-
-
 import { UseFieldArrayRemove, UseFormReturn, useWatch } from "react-hook-form";
 import { useEffect, useState, useMemo } from "react";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from "@mui/material";
+import {
+    Box,
+    Button,
+    IconButton,
+    MenuItem,
+    Paper,
+    Stack,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Tooltip,
+    Typography,
+    Divider,
+} from "@mui/material";
+
 import { Field } from "src/components/hook-form";
-import { fCurrency, fRenderTextNumber } from "src/utils/format-number";
+import { fCurrency } from "src/utils/format-number";
 import { Iconify } from "src/components/iconify";
 import { useGetProducts } from "src/actions/product";
 import { QuotationFormValues } from "./schema/quotation-schema";
 import { useGetUnits } from "src/actions/unit";
-import { capitalizeFirstLetter } from "src/utils/format-string";
 import { toast } from "sonner";
 import { deleteProductSelected } from "src/actions/quotation";
-import { useBoolean } from "minimal-shared/hooks";
 import { mutate } from "swr";
 import { endpoints } from "src/lib/axios";
 import { IQuotationDetails } from "src/types/quotation";
 import { ProductQuickNewForm } from "./ProductQuickNewForm";
 import { ProductItem } from "src/types/product";
+import axiosInstance from "src/lib/axios";
 
 type QuotationItemsTableProps = {
     idQuotation: number | undefined;
@@ -376,7 +40,8 @@ type QuotationItemsTableProps = {
     fields: any[];
     remove: UseFieldArrayRemove;
     append: (value: any) => void;
-    setPaid: (value: any) => void;
+    setPaid: (value: number) => void;
+    setGrandTotal: (value: number) => void;
 };
 
 export function QuotationItemsTable({
@@ -386,183 +51,314 @@ export function QuotationItemsTable({
     fields,
     remove,
     append,
-    setPaid
+    setPaid,
+    setGrandTotal,
 }: QuotationItemsTableProps) {
+
     const items = useWatch({
         control: methods.control,
         name: "items",
     }) as QuotationFormValues["items"];
 
-    const discount = useWatch({
-        control: methods.control,
-        name: "discount",
-    }) as number | undefined;
-
-    const calcAmount = (item: { qty?: number; price?: number; vat?: number }) => {
+    const calcAmount = (item: {
+        qty?: number;
+        price?: number;
+        vat?: number;
+    }) => {
         const qty = Number(item?.qty) || 0;
         const price = Number(item?.price) || 0;
         const vat = Number(item?.vat) || 0;
+
         return Math.round(qty * price * (1 + vat / 100));
     };
 
-    const total = (items || []).reduce((acc, i) => acc + calcAmount(i), 0);
-    const roundedTotal = Math.round(total);
-
-    const openDel = useBoolean();
-    const [indexField, setIndexField] = useState(0);
-    const [productIDSelected, setProductIDSelected] = useState<number[]>([]);
+    const totalAmount = useMemo(() => {
+        return (items || []).reduce((acc, item) => {
+            return acc + calcAmount(item);
+        }, 0);
+    }, [items]);
 
     useEffect(() => {
-        setPaid(roundedTotal);
-    }, [roundedTotal, setPaid]);
+        setGrandTotal(totalAmount);
+    }, [totalAmount, setGrandTotal]);
 
-    const deleteEachProduct = async () => {
+    useEffect(() => {
+        setPaid(totalAmount);
+    }, [totalAmount, setPaid]);
+
+    const handleDeleteProduct = async (index: number) => {
         try {
-            if (!idQuotation) return;
             if (fields.length <= 1) {
                 toast.warning("Phiếu báo giá phải có ít nhất 1 sản phẩm");
-                openDel.onFalse();
+                return;
+            }
+
+            if (!idQuotation) {
+                remove(index);
+                return;
+            }
+
+            const prodId = Number(
+                methods.getValues(`items.${index}.product`)
+            );
+
+            const exists = quotationProductDetail?.products?.some(
+                (p) => Number(p.productID) === prodId
+            );
+
+            if (!exists) {
+                remove(index);
                 return;
             }
 
             await deleteProductSelected({
-                productID: productIDSelected,
-                quotationID: String(idQuotation)
+                productID: [prodId],
+                quotationID: String(idQuotation),
             });
-            remove(indexField);
-            toast.success("Đã xóa sản phẩm");
-            openDel.onFalse();
 
-            mutate((k) => typeof k === "string" && k.startsWith("/api/v1/quotation/quotations"));
-            mutate(endpoints.quotation.detail(idQuotation, `?pageNumber=1&pageSize=999`));
+            remove(index);
+
+            toast.success("Đã xóa sản phẩm");
+
+            mutate((k) =>
+                typeof k === "string" &&
+                k.startsWith("/api/v1/quotation/quotations")
+            );
+
+            mutate(
+                endpoints.quotation.detail(
+                    idQuotation,
+                    `?pageNumber=1&pageSize=999`
+                )
+            );
+
         } catch (error: any) {
             toast.error(error.message || "Đã có lỗi xảy ra!");
         }
     };
 
-    const confirmDeleteUpdateProduct = () => (
-        <Dialog open={openDel.value} onClose={openDel.onFalse} maxWidth="sm" fullWidth>
-            <DialogTitle>Xác nhận xóa sản phẩm?</DialogTitle>
-            <DialogContent>
-                <Stack direction="row" spacing={1} alignItems="center">
-                    <Iconify icon="gridicons:notice" color="#4dd217" />
-                    <Stack>
-                        <Typography variant="body2" color="warning">- Sản phẩm sẽ bị xóa khỏi phiếu báo giá này</Typography>
-                        <Typography variant="overline" color="error">- Không thể hoàn tác</Typography>
-                    </Stack>
-                </Stack>
-            </DialogContent>
-            <DialogActions>
-                <Stack direction="row" spacing={2} width="100%">
-                    <Button variant="outlined" onClick={openDel.onFalse} fullWidth>Hủy</Button>
-                    <Button variant="contained" color="error" onClick={deleteEachProduct} fullWidth>Xóa</Button>
-                </Stack>
-            </DialogActions>
-        </Dialog>
-    );
-
     return (
-        <>
-            <Stack spacing={2}>
-                <TableContainer component={Paper} sx={{ maxHeight: 600, overflow: "auto" }}>
-                    <Table size="small" stickyHeader>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell width={50}>STT</TableCell>
-                                <TableCell>Tên SP</TableCell>
-                                <TableCell width={150}>Số lượng</TableCell>
-                                <TableCell width={150}>Đơn giá</TableCell>
-                                <TableCell width={150}>Đơn vị tính</TableCell>
-                                <TableCell width={100}>VAT</TableCell>
-                                <TableCell width={150}>Thành tiền</TableCell>
-                                <TableCell width={80}></TableCell>
+        <Stack spacing={2}>
+
+            <TableContainer
+                component={Paper}
+                sx={{
+                    maxHeight: 600,
+                    overflow: "auto",
+                }}
+            >
+                <Table size="small" stickyHeader>
+
+                    <TableHead>
+                        <TableRow>
+                            <TableCell width={50}>STT</TableCell>
+                            <TableCell>Tên sản phẩm</TableCell>
+                            <TableCell width={130}>Số lượng</TableCell>
+                            <TableCell width={150}>Đơn giá</TableCell>
+                            <TableCell width={150}>Đơn vị tính</TableCell>
+                            <TableCell width={100}>VAT</TableCell>
+                            <TableCell width={180}>Thành tiền</TableCell>
+                            <TableCell width={80}></TableCell>
+                        </TableRow>
+                    </TableHead>
+
+                    <TableBody>
+                        {fields.map((field, index) => (
+                            <TableRow key={field.id} hover>
+
+                                <TableCell>
+                                    {index + 1}
+                                </TableCell>
+
+                                <TableCell>
+                                    <ProductAutocomplete
+                                        index={index}
+                                        methods={methods}
+                                        append={append}
+                                    />
+                                </TableCell>
+
+                                <TableCell>
+                                    <Field.NumberInput
+                                        name={`items.${index}.qty`}
+                                        sx={{ width: 100 }}
+                                    />
+                                </TableCell>
+
+                                <TableCell>
+                                    <Field.VNCUrrenInputResizable
+                                        name={`items.${index}.price`}
+                                        sx={{ width: 120 }}
+                                    />
+                                </TableCell>
+
+                                <TableCell>
+                                    <UnitSelection
+                                        index={index}
+                                        methods={methods}
+                                    />
+                                </TableCell>
+
+                                <TableCell>
+                                    <Typography variant="body2">
+                                        {items?.[index]?.vat != null
+                                            ? `${items[index].vat}%`
+                                            : ""}
+                                    </Typography>
+                                </TableCell>
+
+                                <TableCell>
+                                    <Typography
+                                        fontWeight={700}
+                                        color="primary.main"
+                                    >
+                                        {fCurrency(calcAmount(items[index]))}
+                                    </Typography>
+                                </TableCell>
+
+                                <TableCell>
+                                    <Tooltip title="Xóa sản phẩm">
+                                        <IconButton
+                                            color="error"
+                                            onClick={() =>
+                                                handleDeleteProduct(index)
+                                            }
+                                        >
+                                            <Iconify icon="material-symbols:delete-outline" />
+                                        </IconButton>
+                                    </Tooltip>
+                                </TableCell>
+
                             </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {fields.map((field, index) => (
-                                <TableRow key={field.id}>
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell>
-                                        <ProductAutocomplete index={index} methods={methods} append={append} />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Field.NumberInput name={`items.${index}.qty`} sx={{ width: 100 }} />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Field.VNCUrrenInputResizable name={`items.${index}.price`} sx={{ width: 100 }} />
-                                    </TableCell>
-                                    <TableCell>
-                                        <UnitSelection index={index} methods={methods} />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="body2">
-                                            {items?.[index]?.vat != null ? `${items[index].vat}%` : ""}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography fontWeight="bold">
-                                            {fCurrency(calcAmount(items[index]))}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Tooltip title="Xóa" arrow>
-                                            <IconButton
-                                                color="error"
-                                                onClick={() => {
-                                                    if (idQuotation) {
-                                                        const prodId = Number(methods.getValues(`items.${index}.product`));
-                                                        const exists = quotationProductDetail?.products?.some(
-                                                            p => Number(p.productID) === prodId
-                                                        );
-                                                        if (exists) {
-                                                            setProductIDSelected([prodId]);
-                                                            setIndexField(index);
-                                                            openDel.onTrue();
-                                                        } else {
-                                                            remove(index);
-                                                        }
-                                                    } else {
-                                                        remove(index);
-                                                    }
-                                                }}
-                                            >
-                                                <Iconify icon="material-symbols:scan-delete-outline-sharp" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                        ))}
+                    </TableBody>
 
-                <Button
-                    variant="outlined"
-                    startIcon={<Iconify icon="gridicons:add" />}
-                    onClick={() => append({ product: "", unit: "", unitName: "", qty: 1, price: 0, vat: 0 })}
-                >
-                    Thêm sản phẩm
-                </Button>
-            </Stack>
+                </Table>
+            </TableContainer>
 
-            {confirmDeleteUpdateProduct()}
-        </>
+
+            <Button
+                variant="outlined"
+                startIcon={<Iconify icon="gridicons:add" />}
+                onClick={() =>
+                    append({
+                        product: "",
+                        unit: "",
+                        unitName: "",
+                        qty: 1,
+                        price: 0,
+                        vat: 0,
+                    })
+                }
+            >
+                Thêm sản phẩm
+            </Button>
+
+            <Paper
+                variant="outlined"
+                sx={{
+                    p: 2,
+                    ml: "auto",
+                    width: 350,
+                    borderRadius: 2,
+                }}
+            >
+                {(() => {
+
+                    const subTotal = (items || []).reduce((acc, item) => {
+                        const qty = Number(item?.qty) || 0;
+                        const price = Number(item?.price) || 0;
+
+                        return acc + qty * price;
+                    }, 0);
+
+                    const totalVat = (items || []).reduce((acc, item) => {
+                        const qty = Number(item?.qty) || 0;
+                        const price = Number(item?.price) || 0;
+                        const vat = Number(item?.vat) || 0;
+
+                        return acc + (qty * price * vat) / 100;
+                    }, 0);
+
+                    const totalPayment = subTotal + totalVat;
+
+                    return (
+                        <Stack spacing={1.5}>
+
+                            <Stack
+                                direction="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                            >
+                                <Typography variant="body2">
+                                    Tổng tiền hàng
+                                </Typography>
+
+                                <Typography fontWeight={600}>
+                                    {fCurrency(subTotal)}
+                                </Typography>
+                            </Stack>
+
+                            <Stack
+                                direction="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                            >
+                                <Typography variant="body2">
+                                    Tiền VAT
+                                </Typography>
+
+                                <Typography color="warning.main" fontWeight={600}>
+                                    {fCurrency(totalVat)}
+                                </Typography>
+                            </Stack>
+
+                            <Divider />
+
+                            <Stack
+                                direction="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                            >
+                                <Typography
+                                    variant="h6"
+                                    fontWeight={700}
+                                >
+                                    Tiền phải trả
+                                </Typography>
+
+                                <Typography
+                                    variant="h6"
+                                    color="primary.main"
+                                    fontWeight={700}
+                                >
+                                    {fCurrency(totalPayment)}
+                                </Typography>
+                            </Stack>
+
+                        </Stack>
+                    );
+                })()}
+            </Paper>
+
+        </Stack>
     );
 }
 
-// ==================== PRODUCT AUTOCOMPLETE - ĐÃ TỐI ƯU (TỰ ĐỘNG CHỌN SAU KHI THÊM MỚI) ====================
 function ProductAutocomplete({
     index,
     methods,
-    append,
 }: {
     index: number;
     methods: UseFormReturn<any>;
     append: (value: any) => void;
 }) {
+
     const [inputValue, setInputValue] = useState("");
     const [openQuickForm, setOpenQuickForm] = useState(false);
     const [defaultName, setDefaultName] = useState("");
+    const [selectedProduct, setSelectedProduct] =
+        useState<ProductItem | null>(null);
 
     const {
         products = [],
@@ -571,15 +367,63 @@ function ProductAutocomplete({
     } = useGetProducts({
         pageNumber: 1,
         pageSize: 999,
-        key: inputValue,
+        key: "",
     });
 
-    const currentProductId = methods.watch(`items.${index}.product`);
+    const currentProductId = methods.watch(
+        `items.${index}.product`
+    );
+
+    useEffect(() => {
+        if (currentProductId && products.length > 0) {
+
+            const found = products.find(
+                (p) =>
+                    String(p.id ?? (p as any).productID)
+                    === String(currentProductId)
+            );
+
+            if (found) {
+                setSelectedProduct(found);
+            }
+        }
+    }, [currentProductId, products]);
+
+    const combinedOptions = useMemo(() => {
+
+        const list = [...products];
+
+        if (selectedProduct) {
+
+            const exists = list.some(
+                (p) =>
+                    String(p.id ?? (p as any).productID)
+                    === String(
+                        selectedProduct.id ??
+                        (selectedProduct as any).productID
+                    )
+            );
+
+            if (!exists) {
+                list.unshift(selectedProduct);
+            }
+        }
+
+        return list;
+
+    }, [products, selectedProduct]);
 
     const currentProduct = useMemo(() => {
+
         if (!currentProductId) return null;
-        return products.find((p) => String(p.id) === String(currentProductId)) || null;
-    }, [products, currentProductId]);
+
+        return combinedOptions.find(
+            (p) =>
+                String(p.id ?? (p as any).productID)
+                === String(currentProductId)
+        ) || null;
+
+    }, [combinedOptions, currentProductId]);
 
     useEffect(() => {
         if (currentProduct?.name) {
@@ -587,94 +431,221 @@ function ProductAutocomplete({
         }
     }, [currentProduct]);
 
-    const updateFormValues = (product: ProductItem) => {
+    const updateFormValues = (product: any) => {
+
         if (!product) return;
-        methods.setValue(`items.${index}.product`, String(product.id), { shouldValidate: true });
-        methods.setValue(`items.${index}.unit`, String(product.unitID || ""));
-        methods.setValue(`items.${index}.unitName`, product.unit || "");
-        methods.setValue(`items.${index}.price`, product.price ?? 0);
-        methods.setValue(`items.${index}.vat`, product.vat ?? 0);
 
-        setInputValue(product.name || "");
+        const normalized: ProductItem = {
+            ...product,
+            id: product.id ?? product.productID,
+            unitID: product.unitID ?? product.unitId,
+            unit: product.unit ?? product.unitName,
+            price: product.price ?? 0,
+            vat: product.vat ?? 0,
+            name: product.name ?? product.productName ?? "",
+        };
 
-        const currentItems = methods.getValues("items") || [];
-        if (index === currentItems.length - 1) {
-            append({ product: "", unit: "", unitName: "", qty: 1, price: 0, vat: 0 });
-        }
+        setSelectedProduct(normalized);
+
+        const options = {
+            shouldValidate: true,
+            shouldDirty: true,
+            shouldTouch: true,
+        };
+
+        methods.setValue(
+            `items.${index}.product`,
+            String(normalized.id),
+            options
+        );
+
+        methods.setValue(
+            `items.${index}.unit`,
+            String(normalized.unitID || ""),
+            options
+        );
+
+        methods.setValue(
+            `items.${index}.unitName`,
+            normalized.unit || "",
+            options
+        );
+
+        methods.setValue(
+            `items.${index}.price`,
+            normalized.price,
+            options
+        );
+
+        methods.setValue(
+            `items.${index}.vat`,
+            normalized.vat,
+            options
+        );
+
+        setInputValue(normalized.name);
     };
 
-    const handleCreateNew = () => {
+    const handleAddDefaultProduct = async () => {
+
         if (!inputValue.trim()) return;
-        setDefaultName(inputValue.trim());
-        setOpenQuickForm(true);
-    };
 
-    const handleProductSuccess = async () => {
-        await mutateProducts?.();
+        try {
 
-        // Tự động tìm và chọn sản phẩm vừa thêm
-        setTimeout(() => {
-            const found = products.find(
-                (p) => p.name && p.name.trim().toLowerCase() === defaultName.trim().toLowerCase()
+            const response = await axiosInstance.post(
+                `/api/v1/products/create-default?productName=${encodeURIComponent(
+                    inputValue.trim()
+                )}`
             );
 
-            if (found) {
-                updateFormValues(found);
-            } else {
-                setTimeout(() => {
-                    const retryFound = products.find(
-                        (p) => p.name && p.name.trim().toLowerCase() === defaultName.trim().toLowerCase()
-                    );
-                    if (retryFound) updateFormValues(retryFound);
-                }, 1000);
-            }
-        }, 700);
+            if (
+                response.data.statusCode === 200 ||
+                response.status === 200
+            ) {
 
-        setOpenQuickForm(false);
-        setDefaultName("");
+                toast.success("Tạo sản phẩm thành công");
+
+                const newProduct =
+                    response.data.data || response.data;
+
+                await mutateProducts?.();
+
+                if (newProduct) {
+                    updateFormValues(newProduct);
+                }
+            }
+
+        } catch (error: any) {
+
+            toast.error(
+                error.response?.data?.message
+                || "Tạo sản phẩm thất bại"
+            );
+        }
     };
 
     return (
         <Stack spacing={0.5}>
+
             <Field.Autocomplete
                 name={`items.${index}.product`}
-                options={products}
+                options={combinedOptions}
                 loading={productsLoading}
                 freeSolo
                 value={currentProduct}
                 inputValue={inputValue}
-                getOptionLabel={(opt: any) => (typeof opt === "string" ? opt : opt?.name ?? "")}
-                isOptionEqualToValue={(option: any, value: any) =>
-                    String(option?.id) === String(value?.id)
-                }
-                onInputChange={(_, newInputValue) => setInputValue(newInputValue || "")}
-                onChange={(_, newValue: any) => {
-                    if (newValue && typeof newValue === "object") {
-                        updateFormValues(newValue as ProductItem);
-                    } else if (typeof newValue === "string") {
-                        setInputValue(newValue);
-                    } else {
-                        setInputValue("");
-                        methods.setValue(`items.${index}.product`, "");
-                    }
-                }}
-                placeholder="Nhập hoặc chọn sản phẩm"
                 fullWidth
                 size="small"
+                placeholder="Nhập hoặc chọn sản phẩm"
+
+                getOptionLabel={(opt: any) =>
+                    typeof opt === "string"
+                        ? opt
+                        : opt?.name ?? opt?.productName ?? ""
+                }
+
+                isOptionEqualToValue={(option: any, value: any) => {
+
+                    const optionId =
+                        option?.id ?? option?.productID;
+
+                    const valueId =
+                        value?.id ??
+                        value?.productID ??
+                        value;
+
+                    return String(optionId) === String(valueId);
+                }}
+
+                onInputChange={(_, value) => {
+                    setInputValue(value || "");
+                }}
+
+                onChange={(_, value: any) => {
+
+                    if (value && typeof value === "object") {
+                        updateFormValues(value);
+                    }
+
+                    if (!value) {
+
+                        setSelectedProduct(null);
+
+                        methods.setValue(
+                            `items.${index}.product`,
+                            ""
+                        );
+
+                        methods.setValue(
+                            `items.${index}.unit`,
+                            ""
+                        );
+
+                        methods.setValue(
+                            `items.${index}.unitName`,
+                            ""
+                        );
+
+                        methods.setValue(
+                            `items.${index}.price`,
+                            0
+                        );
+
+                        methods.setValue(
+                            `items.${index}.vat`,
+                            0
+                        );
+
+                        setInputValue("");
+                    }
+                }}
             />
 
             {inputValue.length > 1 &&
-                !products.some((p) => p.name?.toLowerCase().includes(inputValue.toLowerCase())) && (
-                    <Typography variant="caption" color="error" sx={{ pl: 1 }}>
-                        Sản phẩm chưa tồn tại.{" "}
+                !combinedOptions.some((p) =>
+                    (p.name || "")
+                        .toLowerCase()
+                        .includes(inputValue.toLowerCase())
+                ) && (
+
+                    <Box
+                        sx={{
+                            pl: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            flexWrap: "wrap",
+                        }}
+                    >
+
+                        <Typography
+                            variant="caption"
+                            color="error"
+                        >
+                            Sản phẩm chưa tồn tại
+                        </Typography>
+
                         <Button
                             size="small"
-                            onClick={handleCreateNew}
-                            sx={{ fontSize: "13px", p: 0, textDecoration: "underline", minWidth: "auto" }}
+                            variant="text"
+                            onClick={() => {
+                                setDefaultName(inputValue);
+                                setOpenQuickForm(true);
+                            }}
                         >
                             Thêm mới ngay
                         </Button>
-                    </Typography>
+
+                        <Button
+                            size="small"
+                            variant="text"
+                            color="secondary"
+                            onClick={handleAddDefaultProduct}
+                        >
+                            Thêm SP mặc định
+                        </Button>
+
+                    </Box>
                 )}
 
             <ProductQuickNewForm
@@ -684,8 +655,21 @@ function ProductAutocomplete({
                     setDefaultName("");
                 }}
                 defaultName={defaultName}
-                onSuccess={handleProductSuccess}
+                onSuccess={async (newProduct?: ProductItem) => {
+
+                    setOpenQuickForm(false);
+
+                    if (newProduct) {
+
+                        await mutateProducts?.();
+
+                        updateFormValues(newProduct);
+                    }
+
+                    setDefaultName("");
+                }}
             />
+
         </Stack>
     );
 }
@@ -697,7 +681,14 @@ function UnitSelection({
     index: number;
     methods: UseFormReturn<any>;
 }) {
-    const { units = [], unitsLoading } = useGetUnits({ pageNumber: 1, pageSize: 999 });
+
+    const {
+        units = [],
+        unitsLoading,
+    } = useGetUnits({
+        pageNumber: 1,
+        pageSize: 999,
+    });
 
     return (
         <Field.Select
@@ -706,15 +697,22 @@ function UnitSelection({
             fullWidth
             sx={{ width: 120 }}
         >
+
             {unitsLoading ? (
-                <MenuItem disabled>Đang tải...</MenuItem>
+                <MenuItem disabled>
+                    Đang tải...
+                </MenuItem>
             ) : (
                 units.map((u) => (
-                    <MenuItem key={u.id} value={String(u.id)}>
+                    <MenuItem
+                        key={u.id}
+                        value={String(u.id)}
+                    >
                         {u.name}
                     </MenuItem>
                 ))
             )}
+
         </Field.Select>
     );
 }

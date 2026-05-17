@@ -19,6 +19,7 @@ export type IQuotationItem = {
     supplierPhone: string;
     companyName: string;
     email: string;
+    nickName: string;
     address: string;
     createdDate: IDateValue;
     createdBy: string;

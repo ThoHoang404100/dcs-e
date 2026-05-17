@@ -10,7 +10,8 @@ export const customerSchema = z.object({
             "Mã số thuế phải gồm 10 chữ số hoặc 10 chữ số + '-' + 3 chữ số"
         ).optional(),
     companyName: z.string().optional(),
-    address: z.string().optional()
+    address: z.string().optional(),
+    nickName: z.string().optional(),
 }).superRefine((data, ctx) => {
     if (data.customerType === "KHDN") {
         if (!data.address || data.address.trim() === "") {

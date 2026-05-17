@@ -60,7 +60,7 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
     const [originalItems, setOriginalItems] = useState<IQuotationDetailDto[]>([]);
 
     const [totalPaid, setTotalPaid] = useState(0);
-
+    const [grandTotal, setGrandTotal] = useState(0);
     const [customerkeyword, setCustomerKeyword] = useState('');
     const debouncedCustomerKw = useDebounce(customerkeyword, 300);
 
@@ -483,13 +483,14 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                 }}
             />
             <QuotationItemsTable
-                quotationProductDetail={quotationProductDetail}
                 idQuotation={selectedQuotation?.id}
+                quotationProductDetail={quotationProductDetail}
                 methods={methods}
                 fields={fields}
                 append={append}
                 remove={remove}
                 setPaid={setTotalPaid}
+                setGrandTotal={setGrandTotal}
             />
         </Stack>
     );

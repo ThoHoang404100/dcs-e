@@ -3,7 +3,6 @@ import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
 import { Iconify } from "src/components/iconify";
 import { DashboardContent } from "src/layouts/dashboard";
 import { paths } from "src/routes/paths";
-import { useState } from "react";
 import { QuotationCardList } from "../quotation-card-list";
 import { QuotationTableList } from "../QuotationTableList";
 import { QuotationForm } from "../quotation-form";
@@ -15,10 +14,21 @@ import { useCheckPermission } from "src/auth/hooks/use-check-permission";
 import ServiceNavTabs from "src/components/tabs/service-nav-tabs";
 import { useLocation } from "react-router";
 import { CUSTOMER_SERVICE_TAB_DATA } from "src/components/tabs/components/service-nav-tabs-data";
+import { Box } from "@mui/material";
+import { useState } from "react";
+import { FilterValues } from "src/types/filter-values";
+import { QuotationFilterBar } from "../quotation-filter";
+
+
 
 export function QuotationMainView() {
     const location = useLocation();
+    const [filters, setFilters] = useState<FilterValues>({
+        fromDate: "",
+        toDate: "",
+    });
 
+    const [searchText, setSearchText] = useState("");
     const [openForm, setOpenForm] = useState(false);
     const [openDetail, setOpenDetail] = useState(false);
     const [selectedQuotation, setSelectedQuotation] = useState<IQuotationItem | null>(null);
@@ -52,7 +62,17 @@ export function QuotationMainView() {
             allowedRoles={['BAOGIA.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent
+                sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+
+                    zoom: "80%",
+
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading="Nghiệp vụ khách hàng"
                     links={[
@@ -76,16 +96,32 @@ export function QuotationMainView() {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs tabs={CUSTOMER_SERVICE_TAB_DATA} activePath={location.pathname} />
-                {/* <QuotationCardList
-                    onViewDetails={handleViewDetails}
-                    onEditing={handleEditing}
-                    page={page}
-                    setPage={setPage}
-                    rowsPerPage={rowsPerPage}
-                    setRowsPerPage={setRowsPerPage}
-                    location={location}
-                /> */}
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <ServiceNavTabs
+                        tabs={CUSTOMER_SERVICE_TAB_DATA}
+                        activePath={location.pathname}
+                    />
+
+                    <QuotationFilterBar
+                        onFilterChange={setFilters}
+                        onSearching={setSearchText}
+                        onReset={() =>
+                            setFilters({
+                                fromDate: "",
+                                toDate: "",
+                            })
+                        }
+                    />
+                </Box>
 
                 <QuotationTableList
                     onViewDetails={handleViewDetails}
@@ -94,6 +130,8 @@ export function QuotationMainView() {
                     setPage={setPage}
                     rowsPerPage={rowsPerPage}
                     setRowsPerPage={setRowsPerPage}
+                    filters={filters}
+                    searchText={searchText}
                 />
 
                 <QuotationForm
