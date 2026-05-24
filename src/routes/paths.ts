@@ -105,6 +105,7 @@ export const paths = {
     calendar: `${ROOTS.DASHBOARD}/calendar`,
     fileManager: `${ROOTS.DASHBOARD}/file-manager`,
     permission: `${ROOTS.DASHBOARD}/permission`,
+    defaultSettingKey: `${ROOTS.DASHBOARD}/defaultSettingKey`,
     general: {
       app: `${ROOTS.DASHBOARD}/app`,
       ecommerce: `${ROOTS.DASHBOARD}/ecommerce`,
@@ -221,6 +222,7 @@ export const paths = {
     },
     settings: {
       root: `${ROOTS.DASHBOARD}/settings`,
+
     }
   },
 };

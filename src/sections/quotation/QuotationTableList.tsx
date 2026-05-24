@@ -42,6 +42,7 @@ type IQuotationProduct = {
   productID: string;
   productName: string;
   unit: string;
+  unitProductName: string;
   quantity: number;
   price: number;
   total: number;
@@ -467,7 +468,7 @@ export function QuotationTableList({
                   <TableCell>{detailPage * detailRowsPerPage + i + 1}</TableCell>
                   <TableCell>{item.productID}</TableCell>
                   <TableCell>{item.productName}</TableCell>
-                  <TableCell>{item.unit}</TableCell>
+                  <TableCell>{item.unitProductName}</TableCell>
                   <TableCell align="right">{(item.quantity ?? 0).toLocaleString()}</TableCell>
                   <TableCell align="right">{(item.price ?? 0).toLocaleString()}</TableCell>
                   <TableCell align="right">{(item.total ?? 0).toLocaleString()}</TableCell>
