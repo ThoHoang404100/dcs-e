@@ -520,10 +520,10 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                             </Typography>
                             <Grid container spacing={1}>
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Field.Text name="quotationNo" label="Số hợp đồng" size="small" disabled={!!selectedQuotation} fullWidth />
+                                    <Field.Text name="quotationNo" label="Số hợp đồng" size="small" disabled={!!selectedQuotation && watch('status') !== 1} fullWidth />
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Field.DatePicker name="validUntil" label="Ngày ký" />
+                                    <Field.DatePicker name="validUntil" label="Hiệu lực đến" />
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6 }}>
                                     <Field.Select name="status" label="Trạng thái" size="small" fullWidth>
@@ -533,7 +533,7 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                                     </Field.Select>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <Field.DatePicker name="date" label="Ngày tạo" />
+                                    <Field.DatePicker name="date" label="Ngày báo giá" />
                                 </Grid>
                             </Grid>
                         </Grid>
@@ -580,7 +580,7 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
 
     return (
         <Dialog open={openForm} onClose={onClose} fullScreen>
-            <Box>
+            <Box sx={{ zoom: 0.8 }}>
                 <Form methods={methods} onSubmit={onSubmit} style={{ height: '100%' }}>
                     <DialogTitle sx={{
                         display: 'flex',

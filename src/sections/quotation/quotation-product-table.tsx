@@ -93,20 +93,19 @@ export function QuotationItemsTable({
                 return;
             }
 
-            if (!idQuotation) {
+            const item = methods.getValues(`items.${index}`);
+            const prodId = Number(item.product);
+
+            if (!idQuotation || !prodId || prodId === 0) {
                 remove(index);
                 return;
             }
 
-            const prodId = Number(
-                methods.getValues(`items.${index}.product`)
-            );
-
-            const exists = quotationProductDetail?.products?.some(
+            const isProductInDatabase = quotationProductDetail?.products?.some(
                 (p) => Number(p.productID) === prodId
             );
 
-            if (!exists) {
+            if (!isProductInDatabase) {
                 remove(index);
                 return;
             }
@@ -117,23 +116,14 @@ export function QuotationItemsTable({
             });
 
             remove(index);
-
             toast.success("Đã xóa sản phẩm");
 
-            mutate((k) =>
-                typeof k === "string" &&
-                k.startsWith("/api/v1/quotation/quotations")
-            );
-
-            mutate(
-                endpoints.quotation.detail(
-                    idQuotation,
-                    `?pageNumber=1&pageSize=999`
-                )
-            );
+            mutate((k) => typeof k === "string" && k.startsWith("/api/v1/quotation/quotations"));
+            mutate(endpoints.quotation.detail(idQuotation, `?pageNumber=1&pageSize=999`));
 
         } catch (error: any) {
-            toast.error(error.message || "Đã có lỗi xảy ra!");
+            console.error(error);
+            toast.error("Đã có lỗi xảy ra khi xóa sản phẩm!");
         }
     };
 

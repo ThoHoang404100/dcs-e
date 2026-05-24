@@ -242,6 +242,12 @@ export const navData: NavSectionProps['data'] = [
             path: paths.dashboard.user.root,
             icon: <Iconify icon={'streamline-cyber-color:id-card'} />,
             allowedRoles: ['TOANQUYEN.VIEW'],
+          },
+          {
+            title: 'Dữ liệu mặc định',
+            path: paths.dashboard.defaultSettingKey,
+            icon: <Iconify icon={'streamline-cyber-color:id-card'} />,
+            allowedRoles: ['TOANQUYEN.VIEW'],
           }
         ]
       },

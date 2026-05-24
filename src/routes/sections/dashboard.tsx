@@ -11,7 +11,7 @@ import { LoadingScreen } from 'src/components/loading-screen';
 import { AccountLayout } from 'src/sections/account/account-layout';
 
 import { AuthGuard } from 'src/auth/guard';
-
+import { DefaultKeySettings } from 'src/sections/defaultSettingKey/view';
 import { usePathname } from '../hooks';
 import { paths } from '../paths';
 
@@ -264,6 +264,7 @@ export const dashboardRoutes: RouteObject[] = [
         ],
       },
       { path: 'permission', element: <PermissionPage /> },
+      { path: 'defaultSettingKey', element: <DefaultKeySettings /> },
       { path: 'unit', element: <UnitListPage /> },
       { path: 'employee-type', element: <EmployeeTypeListPage /> },
       { path: 'department', element: <DepartmentListPage /> },
@@ -271,6 +272,7 @@ export const dashboardRoutes: RouteObject[] = [
         path: 'settings',
         children: [
           { index: true, element: <UnitListPage /> },
+
         ]
       }
     ],
