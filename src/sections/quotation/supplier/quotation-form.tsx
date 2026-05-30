@@ -199,7 +199,10 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
         //end update case
 
     }, [selectedQuotation, CopiedQuotation, CurrentQuotation, methods.reset]);
-
+    const [defaultSettings, setDefaultSettings] = useState({
+        quotationVat: 8,
+        quotationQuantity: 1,
+    });
     const customerId = methods.watch('customer');
 
     useEffect(() => {
@@ -491,6 +494,7 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                 remove={remove}
                 setPaid={setTotalPaid}
                 setGrandTotal={setGrandTotal}
+                defaultSettings={defaultSettings}
             />
         </Stack>
     );

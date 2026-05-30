@@ -17,10 +17,22 @@ export const renderTable = ({ currentQuotation, discount, totalAmount }: props) 
         0
     ) ?? 0;
 
+    // const totalVat = currentQuotation?.items?.reduce((sum, q) => {
+    //     return sum + q.products.reduce((subSum, p) => {
+    //         const lineTotal = p.price * p.quantity;
+    //         return subSum + (lineTotal * p.vat) / 100;
+    //     }, 0);
+    // }, 0) ?? 0;
     const totalVat = currentQuotation?.items?.reduce((sum, q) => {
         return sum + q.products.reduce((subSum, p) => {
             const lineTotal = p.price * p.quantity;
-            return subSum + (lineTotal * p.vat) / 100;
+
+            return (
+                subSum +
+                (Number(p.vat) === 255
+                    ? 0
+                    : (lineTotal * p.vat) / 100)
+            );
         }, 0);
     }, 0) ?? 0;
 
@@ -59,7 +71,17 @@ export const renderTable = ({ currentQuotation, discount, totalAmount }: props) 
                                 </View>
                                 <View style={[styles.cell_2]}>
                                     <Text style={{ fontFamily: 'Niramit', fontSize: 12 }}>{p.productName}</Text>
-                                    <Text style={{ fontFamily: 'Niramit-ExtraLight', fontSize: 10 }}>{p.vat}% VAT</Text>
+                                    {/* <Text style={{ fontFamily: 'Niramit-ExtraLight', fontSize: 10 }}>{p.vat}% VAT</Text> */}
+                                    <Text
+                                        style={{
+                                            fontFamily: 'Niramit-ExtraLight',
+                                            fontSize: 10,
+                                        }}
+                                    >
+                                        {Number(p.vat) === 255
+                                            ? 'Không chịu thuế'
+                                            : `${p.vat ?? 0}% VAT`}
+                                    </Text>
                                 </View>
                                 <View style={styles.cell_3}>
                                     <Text style={{ fontFamily: 'Niramit', fontSize: 12, textAlign: 'center' }}>
@@ -85,8 +107,15 @@ export const renderTable = ({ currentQuotation, discount, totalAmount }: props) 
                                     height: '100%'
                                 }]}>
                                     <Text style={{ fontFamily: 'Niramit', fontSize: 12 }}>{fCurrencyNoUnit(p.price * p.quantity)}</Text>
-                                    <Text style={{ fontFamily: 'Niramit-ExtraLight', fontSize: 10 }}>
+                                    {/* <Text style={{ fontFamily: 'Niramit-ExtraLight', fontSize: 10 }}>
                                         {fCurrencyNoUnit(((p.price * p.quantity) * p.vat) / 100)}
+                                    </Text> */}
+                                    <Text style={{ fontFamily: 'Niramit-ExtraLight', fontSize: 10 }}>
+                                        {fCurrencyNoUnit(
+                                            Number(p.vat) === 255
+                                                ? 0
+                                                : ((p.price * p.quantity) * p.vat) / 100
+                                        )}
                                     </Text>
                                 </View>
                             </>

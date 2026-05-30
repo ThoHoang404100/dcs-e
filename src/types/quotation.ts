@@ -137,4 +137,5 @@ export type IProductFormEdit = {
     quantity: number;
     price: number;
     unit: string;
+    vat?: number;
 }
