@@ -181,7 +181,7 @@ export function QuotationItemsTable({
                                         fullWidth
                                         sx={{ width: 140 }}
                                     >
-                                        <MenuItem value={255}>Không tính thuế</MenuItem>
+                                        <MenuItem value={255}>Không chịu thuế</MenuItem>
                                         {Array.from({ length: 101 }, (_, i) => (
                                             <MenuItem key={i} value={i}>
                                                 {i}%

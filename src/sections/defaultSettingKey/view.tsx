@@ -475,11 +475,11 @@ import { useGetUnits } from "src/actions/unit";
 import { useGetCategories } from "src/actions/category";
 
 const SettingsSchema = zod.object({
-  productGroupVat: zod.number().min(-1).max(100),
-  productVat: zod.number().min(-1).max(100),
+  productGroupVat: zod.number().min(0).max(255),
+  productVat: zod.number().min(0).max(255),
   productUnitId: zod.number().min(1, "Vui lòng chọn đơn vị tính"),
   productManufacturerId: zod.number().min(1, "Vui lòng chọn loại sản phẩm"),
-  quotationVat: zod.number().min(-1).max(100),
+  quotationVat: zod.number().min(0).max(255),
   quotationQuantity: zod.number().min(1),
   defaultSupplierName: zod.string().optional(),
 });
@@ -488,7 +488,7 @@ type SettingsType = zod.infer<typeof SettingsSchema>;
 
 // Hàm chuyển đổi hiển thị VAT
 const formatVatDisplay = (value: number | null | undefined): string => {
-  if (value === -1) return "Không tính thuế";
+  if (value === 255) return "Không chịu thuế";
   return value?.toString() || "";
 };
 
@@ -594,7 +594,7 @@ export function DefaultKeySettings() {
                       fullWidth
                       size="small"
                     >
-                      <MenuItem value={-1}>Không tính thuế</MenuItem>
+                      <MenuItem value={255}>Không chịu thuế</MenuItem>
                       {Array.from({ length: 101 }, (_, i) => (
                         <MenuItem key={i} value={i}>
                           {i}%
@@ -636,7 +636,7 @@ export function DefaultKeySettings() {
                   <TableCell sx={{ width: "35%", pl: 5 }}>VAT nhóm sản phẩm (%)</TableCell>
                   <TableCell>
                     <Field.Select name="productGroupVat" fullWidth size="small">
-                      <MenuItem value={-1}>Không tính thuế</MenuItem>
+                      <MenuItem value={255}>Không chịu thuế</MenuItem>
                       {Array.from({ length: 101 }, (_, i) => (
                         <MenuItem key={i} value={i}>
                           {i}%
