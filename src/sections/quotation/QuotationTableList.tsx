@@ -472,7 +472,9 @@ export function QuotationTableList({
                   <TableCell align="right">{(item.quantity ?? 0).toLocaleString()}</TableCell>
                   <TableCell align="right">{(item.price ?? 0).toLocaleString()}</TableCell>
                   <TableCell align="right">{(item.total ?? 0).toLocaleString()}</TableCell>
-                  <TableCell align="right">{item.vat ?? 0}%</TableCell>
+                <TableCell align="right">
+  {item.vat === 255 ? 'Không chịu thuế' : `${item.vat ?? 0}%`}
+</TableCell>
                   <TableCell align="right">
                     {(((item.vat ?? 0) / 100) * (item.total ?? 0)).toLocaleString()}
                   </TableCell>

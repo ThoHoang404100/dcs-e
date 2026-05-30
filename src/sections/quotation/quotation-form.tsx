@@ -18,7 +18,7 @@ import { Iconify } from "src/components/iconify";
 import { Field, Form } from "src/components/hook-form";
 import { useGetCustomers } from "src/actions/customer";
 import { useDebounce } from "minimal-shared/hooks";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ICustomerItem } from "src/types/customer";
 import {
     IQuotationItem,
@@ -41,6 +41,7 @@ import { useAuthContext } from "src/auth/hooks";
 import { mapProductsToItems } from "./helper/mapProductsToItems";
 import { renderSkeleton } from "src/components/skeleton/skeleton-quotation-contract";
 import { QuotationCustomerForm } from "./quotation-customer-form";
+import axiosInstance from "src/lib/axios";
 
 export type QuotationFormProps = {
     selectedQuotation: IQuotationItem | null;
@@ -68,6 +69,69 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
 </p>
 `;
 
+    // ==================== DEFAULT SETTINGS ====================
+    const [defaultSettings, setDefaultSettings] = useState({
+        quotationVat: 8,
+        quotationQuantity: 1,
+    });
+
+    const hasAppliedDefault = useRef(false); // ← Ngăn infinite loop
+
+    // Fetch default settings
+    useEffect(() => {
+        const fetchDefaultSettings = async () => {
+            try {
+                const res = await axiosInstance.post('/api/v1/defaultKey/Get');
+                if (res.data) {
+                    setDefaultSettings({
+                        quotationVat: res.data.quotationVat ?? 8,
+                        quotationQuantity: res.data.quotationQuantity ?? 1,
+                    });
+                }
+            } catch (error) {
+                console.error("Không lấy được cấu hình mặc định:", error);
+            }
+        };
+
+        fetchDefaultSettings();
+    }, []);
+
+    // ==================== DEFAULT VALUES ====================
+    const getDefaultValues = () => ({
+        customer: 0,
+        quotationNo: generateQuotationNo(),
+        date: today.toISOString(),
+        validUntil: nextMonth.toISOString(),
+        status: 1,
+        discount: 0,
+        items: [{
+            id: undefined,
+            product: "",
+            unit: "",
+            unitName: "",
+            qty: defaultSettings.quotationQuantity,
+            price: 0,
+            vat: defaultSettings.quotationVat,
+        }],
+        notes: sampleNote,
+        paid: 0,
+        cusName: "",
+        companyName: "",
+        taxCode: "",
+        phone: "",
+        address: "",
+        nickName: "",
+    });
+
+    const methods = useForm<QuotationFormValues>({
+        mode: 'onSubmit',
+        resolver: zodResolver(quotationSchema),
+        defaultValues: getDefaultValues(),
+    });
+
+    const { reset, watch, setValue, handleSubmit, control, formState: { isSubmitting } } = methods;
+    const customerId = watch('customer');
+
     const [originalItems, setOriginalItems] = useState<IQuotationDetailDto[]>([]);
     const [totalPaid, setTotalPaid] = useState(0);
     const [customerkeyword, setCustomerKeyword] = useState('');
@@ -75,7 +139,6 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
     const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
     const [quotationProductDetail, setQuotationProductDetail] = useState<IQuotationDetails>();
     const [grandTotal, setGrandTotal] = useState(0);
-
 
     const { quotation: CurrentQuotation, quotationLoading } = useGetQuotation({
         quotationId,
@@ -93,35 +156,119 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
 
     const [selectedCustomer, setSelectedCustomer] = useState<ICustomerItem | null>(null);
 
-    const defaultValues: QuotationFormValues = {
-        customer: 0,
-        quotationNo: generateQuotationNo(),
-        date: today.toISOString(),
-        validUntil: nextMonth.toISOString(),
-        status: 1,
-        discount: 0,
-        items: [{ id: undefined, product: "", unit: "", unitName: "", qty: 1, price: 0, vat: 0 }],
-        notes: sampleNote,
-        paid: 0,
-        cusName: "",
-        companyName: "",
-        taxCode: "",
-        phone: "",
-        address: "",
-        nickName: "",
-    };
+    // ==================== APPLY DEFAULT QTY & VAT ====================
+    useEffect(() => {
+        if (!openForm || hasAppliedDefault.current) return;
 
-    const methods = useForm<QuotationFormValues>({
-        mode: 'onSubmit',
-        resolver: zodResolver(quotationSchema),
-        defaultValues,
-    });
+        // Chỉ áp dụng khi defaultSettings đã thay đổi và là form mới
+        const currentItems = methods.getValues('items');
+        if (currentItems.length > 0 &&
+            (defaultSettings.quotationQuantity !== 1 || defaultSettings.quotationVat !== 8)) {
 
-    const { reset, watch, setValue, handleSubmit, control, formState: { isSubmitting } } = methods;  // ← Đã thêm setValue
-    const customerId = watch('customer');
+            reset({
+                ...methods.getValues(),
+                items: currentItems.map(item => ({
+                    ...item,
+                    qty: item.qty ?? defaultSettings.quotationQuantity,
+                    vat: item.vat !== undefined ? item.vat : defaultSettings.quotationVat,
+                }))
+            });
+            hasAppliedDefault.current = true;
+        }
+    }, [defaultSettings, openForm, reset, methods]);
 
+    // Reset hasAppliedDefault khi đóng form
+    useEffect(() => {
+        if (!openForm) {
+            hasAppliedDefault.current = false;
+        }
+    }, [openForm]);
 
-    const formattedTotal = new Intl.NumberFormat('vi-VN').format(grandTotal) + 'đ';
+    // ==================== LOAD DATA ====================
+    useEffect(() => {
+        if (!openForm) {
+            setSelectedCustomer(null);
+            setCustomerKeyword('');
+            setQuotationProductDetail(undefined);
+            setOriginalItems([]);
+            return;
+        }
+
+        const refreshData = async () => {
+            if (quotationId) await mutate(`/api/v1/quotation/${quotationId}`);
+        };
+        refreshData();
+
+        if (!selectedQuotation && !CopiedQuotation) {
+            reset(getDefaultValues());
+            return;
+        }
+
+        if (CopiedQuotation && CurrentQuotation) {
+            const currentDetails = CurrentQuotation.items.find(q => q.quotationID === CopiedQuotation.id);
+            setQuotationProductDetail(currentDetails);
+            const mappedItems = mapProductsToItems(currentDetails?.products || []);
+
+            reset({
+                ...getDefaultValues(),
+                customer: CopiedQuotation.customerId ?? 0,
+                quotationNo: generateQuotationNo(),
+                date: today.toISOString(),
+                validUntil: nextMonth.toISOString(),
+                status: 1,
+                discount: CopiedQuotation.discount ?? 0,
+                items: mappedItems,
+                notes: CopiedQuotation.note ?? sampleNote,
+                paid: CopiedQuotation.paid ?? 0,
+                nickName: CopiedQuotation.nickName || "",
+            });
+            return;
+        }
+
+        if (selectedQuotation && CurrentQuotation) {
+            const currentDetails = CurrentQuotation.items.find(q => q.quotationID === selectedQuotation.id);
+            if (currentDetails) {
+                setQuotationProductDetail(currentDetails);
+                setOriginalItems((currentDetails.products || []).map((p, index) => ({
+                    productID: p.productID,
+                    quantity: p.quantity,
+                    row: index + 1,
+                    Unit: p.unit || "",
+                    Price: p.price || 0,
+                })));
+            }
+
+            const mappedItems = mapProductsToItems(currentDetails?.products || []);
+
+            reset({
+                customer: selectedQuotation.customerId ?? 0,
+                quotationNo: selectedQuotation.quotationNo,
+                date: selectedQuotation.createdDate ?? today.toISOString(),
+                validUntil: selectedQuotation.expiryDate ?? nextMonth.toISOString(),
+                status: selectedQuotation.status ?? 1,
+                discount: selectedQuotation.discount ?? 0,
+                items: mappedItems,
+                notes: selectedQuotation.note ?? sampleNote,
+                paid: selectedQuotation.paid ?? 0,
+                cusName: "",
+                companyName: "",
+                taxCode: "",
+                phone: "",
+                address: "",
+                nickName: selectedQuotation.nickName || "",
+            });
+        }
+    }, [openForm, selectedQuotation?.id, CopiedQuotation?.id, CurrentQuotation, reset]);
+
+    // ==================== CUSTOMER ====================
+    useEffect(() => {
+        if (!customerId) {
+            setSelectedCustomer(null);
+            return;
+        }
+        const found = customers.find((cus) => Number(cus.id) === Number(customerId));
+        setSelectedCustomer(found || null);
+    }, [customerId, customers]);
 
     useEffect(() => {
         if (!selectedCustomer) {
@@ -149,213 +296,17 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
     }, [selectedCustomer, setValue, selectedQuotation, CopiedQuotation, methods]);
 
     useEffect(() => {
-        if (!openForm) {
-            setSelectedCustomer(null);
-            setCustomerKeyword('');
-            return;
-        }
-
-        setSelectedCustomer(null);
-        setQuotationProductDetail(undefined);
-        setOriginalItems([]);
-        setCustomerKeyword('');
-
-        const refreshData = async () => {
-            if (quotationId) {
-                await mutate(`/api/v1/quotation/${quotationId}`);
-            }
-        };
-        refreshData();
-
-        if (!selectedQuotation && !CopiedQuotation) {
-            reset({
-                customer: 0,
-                quotationNo: generateQuotationNo(),
-                date: today.toISOString(),
-                validUntil: nextMonth.toISOString(),
-                status: 1,
-                discount: 0,
-                items: [{ id: undefined, product: "", unit: "", unitName: "", qty: 1, price: 0, vat: 0 }],
-                notes: sampleNote,
-                paid: 0,
-                cusName: "",
-                companyName: "",
-                taxCode: "",
-                phone: "",
-                address: "",
-                nickName: "",
-            });
-            return;
-        }
-
-        if (CopiedQuotation && CurrentQuotation) {
-            const currentDetails = CurrentQuotation.items.find(q => q.quotationID === CopiedQuotation.id);
-            setQuotationProductDetail(currentDetails);
-            const mappedItems = mapProductsToItems(currentDetails?.products || []);
-
-            reset({
-                ...defaultValues,
-                customer: CopiedQuotation.customerId ?? 0,
-                quotationNo: generateQuotationNo(),
-                date: today.toISOString(),
-                validUntil: nextMonth.toISOString(),
-                status: 1,
-                discount: CopiedQuotation.discount ?? 0,
-                items: mappedItems,
-                notes: CopiedQuotation.note ?? sampleNote,
-                paid: CopiedQuotation.paid ?? 0,
-                nickName: CopiedQuotation.nickName || "",
-            });
-            return;
-        }
-
-        if (selectedQuotation) {
-            if (!CurrentQuotation) return;
-
-            const currentDetails = CurrentQuotation.items.find(q => q.quotationID === selectedQuotation.id);
-            if (currentDetails) {
-                setQuotationProductDetail(currentDetails);
-                setOriginalItems((currentDetails.products || []).map((p, index) => ({
-                    productID: p.productID,
-                    quantity: p.quantity,
-                    row: index + 1,
-                    Unit: p.unit || "",
-                    Price: p.price || 0,
-                })));
-            }
-
-            const mappedItems = mapProductsToItems(currentDetails?.products || []);
-
-            reset({
-                customer: selectedQuotation.customerId ?? 0,
-                quotationNo: selectedQuotation.quotationNo,
-                date: selectedQuotation.createdDate ?? today.toISOString(),
-                validUntil: selectedQuotation.expiryDate ?? nextMonth.toISOString(),
-                status: selectedQuotation.status ?? 1,
-                discount: selectedQuotation.discount ?? 0,
-                items: mappedItems,
-                notes: selectedQuotation.note ?? sampleNote,
-                paid: selectedQuotation.paid ?? 0,
-                cusName: "",
-                companyName: "",
-                taxCode: "",
-                phone: "",
-                address: "",
-                nickName: selectedQuotation.nickName || "",
-            });
-        }
-    }, [openForm, selectedQuotation?.id, CopiedQuotation?.id, CurrentQuotation, reset]);
-
-    useEffect(() => {
-        if (!openForm) {
-            setSelectedCustomer(null);
-            return;
-        }
-
-        setSelectedCustomer(null);
-        setQuotationProductDetail(undefined);
-        setOriginalItems([]);
-        setCustomerKeyword('');
-
-        const refreshData = async () => {
-            if (quotationId) {
-                await mutate(`/api/v1/quotation/${quotationId}`);
-            }
-        };
-        refreshData();
-
-        if (!selectedQuotation && !CopiedQuotation) {
-            reset({
-                ...defaultValues,
-                quotationNo: generateQuotationNo(),
-                date: today.toISOString(),
-                validUntil: nextMonth.toISOString(),
-            });
-            return;
-        }
-
-        if (CopiedQuotation && CurrentQuotation) {
-            const currentDetails = CurrentQuotation.items.find(q => q.quotationID === CopiedQuotation.id);
-            setQuotationProductDetail(currentDetails);
-            const mappedItems = mapProductsToItems(currentDetails?.products || []);
-
-            reset({
-                ...defaultValues,
-                customer: CopiedQuotation.customerId ?? 0,
-                quotationNo: generateQuotationNo(),
-                date: today.toISOString(),
-                validUntil: nextMonth.toISOString(),
-                status: 1,
-                discount: CopiedQuotation.discount ?? 0,
-                items: mappedItems,
-                notes: CopiedQuotation.note ?? sampleNote,
-                paid: CopiedQuotation.paid ?? 0,
-                nickName: CopiedQuotation.nickName || "",
-            });
-            return;
-        }
-
-        if (selectedQuotation) {
-            if (!CurrentQuotation) return;
-
-            const currentDetails = CurrentQuotation.items.find(q => q.quotationID === selectedQuotation.id);
-            if (currentDetails) {
-                setQuotationProductDetail(currentDetails);
-                setOriginalItems((currentDetails.products || []).map((p, index) => ({
-                    productID: p.productID,
-                    quantity: p.quantity,
-                    row: index + 1,
-                    Unit: p.unit || "",
-                    Price: p.price || 0,
-                })));
-            }
-
-            const mappedItems = mapProductsToItems(currentDetails?.products || []);
-
-            reset({
-                customer: selectedQuotation.customerId ?? 0,
-                quotationNo: selectedQuotation.quotationNo,
-                date: selectedQuotation.createdDate ?? today.toISOString(),
-                validUntil: selectedQuotation.expiryDate ?? nextMonth.toISOString(),
-                status: selectedQuotation.status ?? 1,
-                discount: selectedQuotation.discount ?? 0,
-                items: mappedItems,
-                notes: selectedQuotation.note ?? sampleNote,
-                paid: selectedQuotation.paid ?? 0,
-                cusName: "",
-                companyName: "",
-                taxCode: "",
-                phone: "",
-                address: "",
-                nickName: selectedQuotation.nickName || "",
-            });
-        }
-    }, [openForm, selectedQuotation?.id, CopiedQuotation?.id, CurrentQuotation, reset]);
-
-    useEffect(() => {
-        if (!customerId) {
-            setSelectedCustomer(null);
-            return;
-        }
-        const found = customers.find((cus) => Number(cus.id) === Number(customerId));
-        setSelectedCustomer(found || null);
-    }, [customerId, customers]);
-
-
-    useEffect(() => {
         if (openForm && quotationId) {
             mutate(`/api/v1/quotation/${quotationId}`);
         }
     }, [openForm, quotationId]);
 
-
     const { fields, append, remove } = useFieldArray({ control, name: "items" });
 
+    // ==================== SUBMIT ====================
     const onSubmit = handleSubmit(async (data: QuotationFormValues) => {
         try {
-            const validItems = data.items.filter(
-                (item) => item.product && item.product !== ""
-            );
+            const validItems = data.items.filter((item) => item.product && item.product !== "");
 
             const quotationDetails = validItems.map((item, i) => ({
                 productID: String(item.product),
@@ -363,6 +314,7 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                 row: i + 1,
                 Unit: item.unitName || "",
                 Price: item.price || 0,
+                vat: item.vat ?? defaultSettings.quotationVat,
             }));
 
             const basePayload = {
@@ -379,36 +331,11 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
             };
 
             if (!selectedQuotation) {
-
-                await createOrUpdateQuotation(
-                    null,
-                    {
-                        ...basePayload,
-                        quotationDetails,
-                    },
-                    {
-                        ...basePayload,
-                        seller: user?.accessToken || "",
-                    }
-                );
-            }
-
-            else {
-
-                await createOrUpdateQuotation(
-                    selectedQuotation.id,
-                    {
-                        ...basePayload,
-                        quotationDetails: [],
-                    },
-                    {
-                        ...basePayload,
-                        seller: user?.accessToken || "",
-                    }
-                );
+                await createOrUpdateQuotation(null, { ...basePayload, quotationDetails }, { ...basePayload, seller: user?.accessToken || "" });
+            } else {
+                await createOrUpdateQuotation(selectedQuotation.id, { ...basePayload, quotationDetails: [] }, { ...basePayload, seller: user?.accessToken || "" });
 
                 const existingItems = validItems.filter((x) => x.id);
-
                 for (const item of existingItems) {
                     await editProductForm(item.id!, {
                         rowId: item.id!,
@@ -416,56 +343,40 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                         price: item.price || 0,
                         quantity: item.qty || 0,
                         unit: item.unitName ?? "",
+                        vat: item.vat ?? defaultSettings.quotationVat,
                     });
                 }
 
-                const newItems = validItems
-                    .filter((x) => !x.id)
-                    .map((item, i) => ({
-                        productID: String(item.product),
-                        quantity: item.qty ?? 0,
-                        row: i + 1,
-                        Unit: item.unitName || "",
-                        Price: item.price || 0,
-                    }));
+                const newItems = validItems.filter((x) => !x.id).map((item, i) => ({
+                    productID: String(item.product),
+                    quantity: item.qty ?? 0,
+                    row: i + 1,
+                    Unit: item.unitName || "",
+                    Price: item.price || 0,
+                    vat: item.vat ?? defaultSettings.quotationVat,
+                }));
 
-                if (newItems.length > 0) {
-                    await addMoreProducts(selectedQuotation.id, newItems);
-                }
+                if (newItems.length > 0) await addMoreProducts(selectedQuotation.id, newItems);
             }
 
-            await mutate(
-                (key) =>
-                    typeof key === "string" &&
-                    key.includes("/api/v1/quotation"),
-                undefined,
-                { revalidate: true }
-            );
-
+            await mutate((key) => typeof key === "string" && key.includes("/api/v1/quotation"), undefined, { revalidate: true });
             await mutate("/api/v1/quotation/quotations");
+            if (selectedQuotation?.id) await mutate(`/api/v1/quotation/${selectedQuotation.id}`);
 
-            if (selectedQuotation?.id) {
-                await mutate(`/api/v1/quotation/${selectedQuotation.id}`);
-            }
-
-            toast.success(
-                selectedQuotation
-                    ? "Cập nhật thành công!"
-                    : "Tạo báo giá thành công!"
-            );
-
+            toast.success(selectedQuotation ? "Cập nhật thành công!" : "Tạo báo giá thành công!");
             onClose();
-
-            reset(defaultValues);
+            reset(getDefaultValues());
             setSelectedCustomer(null);
             setCustomerKeyword('');
             setQuotationProductDetail(undefined);
+            hasAppliedDefault.current = false;
 
         } catch (error: any) {
             toast.error(error.message || "Đã có lỗi xảy ra!");
         }
     });
 
+    const formattedTotal = new Intl.NumberFormat('vi-VN').format(grandTotal) + 'đ';
 
     const renderDetails = () => (
         <Stack spacing={2.5}>
@@ -539,14 +450,7 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                         </Grid>
 
                         <Grid size={12}>
-                            <Box sx={{
-                                bgcolor: '#FFF7E6',
-                                border: '2px solid #FFE7BA',
-                                borderRadius: 2,
-                                p: 2,
-                                textAlign: 'center',
-                                minHeight: 82,
-                            }}>
+                            <Box sx={{ bgcolor: '#FFF7E6', border: '2px solid #FFE7BA', borderRadius: 2, p: 2, textAlign: 'center', minHeight: 82 }}>
                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
                                     Tổng tiền thanh toán
                                 </Typography>
@@ -570,10 +474,10 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                     fields={fields}
                     append={append}
                     remove={remove}
+                    defaultSettings={defaultSettings}
                     setPaid={setTotalPaid}
                     setGrandTotal={setGrandTotal}
                 />
-
             </Box>
         </Stack>
     );
@@ -582,14 +486,7 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
         <Dialog open={openForm} onClose={onClose} fullScreen>
             <Box sx={{ zoom: 0.8 }}>
                 <Form methods={methods} onSubmit={onSubmit} style={{ height: '100%' }}>
-                    <DialogTitle sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        borderBottom: '1px solid #ddd',
-                        py: 1.5,
-                        px: 3
-                    }}>
+                    <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #ddd', py: 1.5, px: 3 }}>
                         <Typography variant="h6" fontSize="1.1rem">
                             {selectedQuotation ? "CHỈNH SỬA BÁO GIÁ" : "TẠO BÁO GIÁ"}
                         </Typography>
@@ -613,7 +510,6 @@ export function QuotationForm({ openForm, selectedQuotation, onClose, CopiedQuot
                     refetchCustomers={refetchCustomers}
                 />
             </Box>
-
         </Dialog>
     );
 }

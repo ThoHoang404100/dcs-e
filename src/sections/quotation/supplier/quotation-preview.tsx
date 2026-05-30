@@ -234,7 +234,7 @@ function Tables({ currentQuotation, roundedTotal, quotation }:
                                         secondary: { color: '#1C252E', fontWeight: 400 }
                                     }}
                                     secondary={
-                                        `${item.vat}%`
+                                        `${item.vat === 255 ? 'Không chịu thuế' : item.vat ?? 0}%`
                                     }
                                 />
                             </TableCell>
@@ -267,8 +267,14 @@ function Tables({ currentQuotation, roundedTotal, quotation }:
                                         overflow: "hidden",
                                         textOverflow: "ellipsis",
                                     }}
-                                    primary={fCurrencyNoUnit(item.quantity * item.price * (1 + item.vat / 100))}
-
+                                    // primary={fCurrencyNoUnit(item.quantity * item.price * (1 + item.vat / 100))}
+                                    primary={
+                                        fCurrencyNoUnit(
+                                            item.vat === 255
+                                                ? 0
+                                                : item.quantity * item.price * (1 + item.vat / 100)
+                                        )
+                                    }
                                     slotProps={{
                                         primary: { textAlign: 'right', color: '#1C252E', fontWeight: 600 },
                                         secondary: { textAlign: 'right', color: '#1C252E', fontWeight: 400 }
