@@ -472,9 +472,9 @@ export function QuotationTableList({
                   <TableCell align="right">{(item.quantity ?? 0).toLocaleString()}</TableCell>
                   <TableCell align="right">{(item.price ?? 0).toLocaleString()}</TableCell>
                   <TableCell align="right">{(item.total ?? 0).toLocaleString()}</TableCell>
-                <TableCell align="right">
-  {item.vat === 255 ? 'Không chịu thuế' : `${item.vat ?? 0}%`}
-</TableCell>
+                  <TableCell align="right">
+                    {item.vat === 255 ? 'Không chịu thuế' : `${item.vat ?? 0}%`}
+                  </TableCell>
                   <TableCell align="right">
                     {(((item.vat ?? 0) / 100) * (item.total ?? 0)).toLocaleString()}
                   </TableCell>
@@ -507,7 +507,13 @@ export function QuotationTableList({
                 setDetailRowsPerPage(parseInt(e.target.value, 10));
                 setDetailPage(0);
               }}
+
               rowsPerPageOptions={[5, 10, 20, 50]}
+              labelRowsPerPage="Số dòng mỗi trang:"
+
+              labelDisplayedRows={({ from, to, count }) =>
+                `${from}–${to} trên ${count !== -1 ? count : `hơn ${to}`}`
+              }
             />
           </Box>
         )}
