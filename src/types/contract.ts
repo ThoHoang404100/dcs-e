@@ -72,6 +72,7 @@ export type IContractRemainingProduct = {
 };
 
 export type IContractDetails = {
+    cusstomerID: number;
     contractID: number;
     contractNo: string;
     products: IContractProduct[];
