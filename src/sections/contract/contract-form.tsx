@@ -2247,7 +2247,7 @@ export function ContractForm({
                                                 <Field.VNCurrencyInput label="Đợt 2" name="nextPayment" />
                                                 <Field.VNCurrencyInput label="Đợt 3 (Còn lại)" name="lastPayment" />
                                             </Box>
-                                            <Field.Text label="Chiết khấu (%)" name="discount" type="number" fullWidth slotProps={{ htmlInput: { min: 0, max: 100 } }} />
+                                            {/* <Field.Text label="Chiết khấu (%)" name="discount" type="number" fullWidth slotProps={{ htmlInput: { min: 0, max: 100 } }} /> */}
                                         </Box>
 
                                         <Box sx={{ textAlign: 'right', pt: 1, borderTop: '1px dashed #e2e8f0' }}>
