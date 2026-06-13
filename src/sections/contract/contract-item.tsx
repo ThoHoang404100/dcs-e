@@ -26,6 +26,7 @@ const statusMap: { [key: number]: [string, string] } = {
     3: ["Đang thực hiện", "line-md:uploading-loop"],
     4: ["Đã hoàn thành", "fluent-color:checkmark-circle-16"],
 };
+export default statusMap;   
 
 export function ContractItem({ openDeleteDialog, setId, contract, onViewDetails, onEditing, companyInfo, sx, ...other }: Props) {
     const menuActions = usePopover();
