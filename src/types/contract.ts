@@ -5,6 +5,7 @@ export type IContractItem = {
     contractNo: string;
     customerID: number;
     customerName: string;
+    nickName: string;
     customerEmail: string;
     customerPhone: string;
     customerAddress: string;

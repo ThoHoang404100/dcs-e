@@ -12,6 +12,7 @@ import { ContractFormValues } from "./schema/contract-schema";
 import { deleteProductSelected } from "src/actions/contract";
 import { ContractItemsTableProps } from "./helper/ContractItemsTableProps";
 import ContractItemsTableContent from "./components/contractItemTable";
+import { Alert } from "@mui/material";
 
 export function ContractItemsTable({
     idContract,
@@ -90,36 +91,77 @@ export function ContractItemsTable({
     };
 
     const confirmDeleteUpdateProduct = () => (
-        <Dialog open={openDel.value} onClose={openDel.onFalse} maxWidth="sm" fullWidth>
-            <DialogTitle>Xác nhận xóa sản phẩm ra khỏi hợp đồng này?</DialogTitle>
-            <DialogContent>
-                <Stack direction="row" spacing={1} alignItems={"center"}>
-                    <Iconify icon="gridicons:notice" color="#4dd217" />
-                    <Stack direction="column">
-                        <Typography variant="body2" color="warning">- Sản phẩm sẽ được xóa ra khỏi dữ liệu của phiếu hợp đồng này</Typography>
-                        <Typography variant="overline" color="error">- Hành động này không thể hoàn tác</Typography>
-                    </Stack>
-                </Stack>
+        // <Dialog open={openDel.value} onClose={openDel.onFalse} maxWidth="sm" fullWidth>
+        //     <DialogTitle>Xác nhận xóa sản phẩm ra khỏi hợp đồng này?</DialogTitle>
+        //     <DialogContent>
+        //         <Stack direction="row" spacing={1} alignItems={"center"}>
+        //             <Iconify icon="gridicons:notice" color="#4dd217" />
+        //             <Stack direction="column">
+        //                 <Typography variant="body2" color="warning">- Sản phẩm sẽ được xóa ra khỏi dữ liệu của phiếu hợp đồng này</Typography>
+        //                 <Typography variant="overline" color="error">- Hành động này không thể hoàn tác</Typography>
+        //             </Stack>
+        //         </Stack>
+        //     </DialogContent>
+        //     <DialogActions>
+        //         <Stack direction="row" spacing={2} width="100%" minHeight={40}>
+        //             <Button
+        //                 variant="outlined"
+        //                 color="inherit"
+        //                 onClick={() => openDel.onFalse()}
+        //                 fullWidth
+        //             >
+        //                 Hủy bỏ
+        //             </Button>
+        //             <Button
+        //                 variant="contained"
+        //                 sx={{ ml: 1 }}
+        //                 fullWidth
+        //                 onClick={deleteEachProduct}
+        //             >
+        //                 Xóa
+        //             </Button>
+        //         </Stack>
+        //     </DialogActions>
+        // </Dialog>
+        <Dialog
+            open={openDel.value}
+            onClose={openDel.onFalse}
+            maxWidth="xs"
+            fullWidth
+        >
+            <DialogTitle>
+                Xóa sản phẩm khỏi hợp đồng
+            </DialogTitle>
+
+            <DialogContent dividers>
+                <Typography variant="body2">
+                    Bạn có chắc chắn muốn xóa sản phẩm này khỏi hợp đồng?
+                </Typography>
+
+                <Alert
+                    severity="warning"
+                    sx={{ mt: 2 }}
+                >
+                    Sản phẩm sẽ bị gỡ khỏi danh sách của hợp đồng hiện tại.
+                    Hành động này không thể hoàn tác.
+                </Alert>
             </DialogContent>
+
             <DialogActions>
-                <Stack direction="row" spacing={2} width="100%" minHeight={40}>
-                    <Button
-                        variant="outlined"
-                        color="inherit"
-                        onClick={() => openDel.onFalse()}
-                        fullWidth
-                    >
-                        Hủy bỏ
-                    </Button>
-                    <Button
-                        variant="contained"
-                        sx={{ ml: 1 }}
-                        fullWidth
-                        onClick={deleteEachProduct}
-                    >
-                        Xóa
-                    </Button>
-                </Stack>
+                <Button
+                    color="inherit"
+                    onClick={openDel.onFalse}
+                >
+                    Hủy
+                </Button>
+
+                <Button
+                    variant="contained"
+                    color="error"
+                    onClick={deleteEachProduct}
+                >
+                    Xóa sản phẩm
+                </Button>
             </DialogActions>
         </Dialog>
     );
@@ -129,7 +171,7 @@ export function ContractItemsTable({
     }, [roundedTotal]);
 
     return (
-        <Stack width={{ xs: "100%", sm: "100%", md: "100%", lg: "70%" }} spacing={2} sx={{ height: "100%" }}>
+        <Stack width={{ xs: "100%", sm: "100%", md: "100%", lg: "70%" }} spacing={2} sx={{ height: "100%", width: "100%" }}>
             <Typography variant="subtitle2">Sản phẩm</Typography>
 
             <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>

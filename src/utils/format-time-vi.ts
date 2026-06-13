@@ -1,6 +1,7 @@
 /* eslint-disable import/no-duplicates */
 import { format, getTime, formatDistanceToNow, add } from 'date-fns';
 import { vi } from 'date-fns/locale/vi';
+import { IDateValue } from 'src/types/common';
 // ----------------------------------------------------------------------
 
 type InputValue = Date | string | number | null | undefined;
@@ -51,6 +52,16 @@ export function fToNowUTC0(date: InputValue) {
 }
 
 
-export function formatDate(date: Date): string {
-    return date.toISOString().split("T")[0];
+export function formatDate(
+    date?: IDateValue | Date
+): string {
+    if (date == null) return '';
+
+    const d = new Date(date);
+
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+
+    return `${day}/${month}/${year}`;
 }

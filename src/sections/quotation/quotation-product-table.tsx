@@ -54,7 +54,7 @@ export function QuotationItemsTable({
     append,
     setPaid,
     setGrandTotal,
-    defaultSettings,           // ← Dùng props này
+    defaultSettings,
 }: QuotationItemsTableProps) {
 
     // ==================== WATCH ITEMS ====================
@@ -67,7 +67,7 @@ export function QuotationItemsTable({
         const qty = Number(item?.qty) || 0;
         const price = Number(item?.price) || 0;
         let vat = Number(item?.vat) || 0;
-        if (vat === -1) vat = 0;
+        if (vat === 255) vat = 0;
 
         return Math.round(qty * price * (1 + vat / 100));
     };
@@ -81,7 +81,6 @@ export function QuotationItemsTable({
         setPaid(totalAmount);
     }, [totalAmount, setGrandTotal, setPaid]);
 
-    // ==================== THÊM SẢN PHẨM MỚI ====================
     const handleAddProduct = () => {
         append({
             product: "",
@@ -229,7 +228,9 @@ export function QuotationItemsTable({
                         const qty = Number(item?.qty) || 0;
                         const price = Number(item?.price) || 0;
                         let vat = Number(item?.vat) || 0;
-                        if (vat === -1) vat = 0;
+
+                        if (vat === 255) vat = 0;
+
                         return acc + (qty * price * vat) / 100;
                     }, 0);
 

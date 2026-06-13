@@ -12,7 +12,9 @@ import {
     Typography,
     IconButton
 } from "@mui/material";
-
+import { useGetCustomers } from "src/actions/customer";
+import { useDebounce } from "minimal-shared/hooks";
+import { useEffect } from "react";
 import { Iconify } from "src/components/iconify";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { Dayjs } from "dayjs";
@@ -22,18 +24,36 @@ export function QuotationFilterBar({ onFilterChange, onReset, onSearching }: any
     const [open, setOpen] = useState(false);
 
     const today = dayjs();
-    const [fromDate, setFromDate] = useState<Dayjs | null>(today.subtract(1, "month"));
-    const [toDate, setToDate] = useState<Dayjs | null>(today);
+    // const [fromDate, setFromDate] = useState<Dayjs | null>(today.subtract(1, "month"));
+    // const [toDate, setToDate] = useState<Dayjs | null>(today);
+    const [fromDate, setFromDate] = useState<Dayjs | null>(null);
+    const [toDate, setToDate] = useState<Dayjs | null>(null);
     const [status, setStatus] = useState("");
     const [month, setMonth] = useState("");
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+    const [customerkeyword, setCustomerKeyword] = useState('');
+    const debouncedCustomerKw = useDebounce(customerkeyword, 300);
+
+    const { customers, customersLoading } = useGetCustomers({
+        pageNumber: 1,
+        pageSize: 20,
+        key: debouncedCustomerKw,
+        enabled: true
+    });
 
     const handleApply = () => {
         onFilterChange({
-            fromDate: fromDate?.format("YYYY-MM-DD"),
-            toDate: toDate?.format("YYYY-MM-DD"),
+            // fromDate: fromDate?.format("YYYY-MM-DD"),
+            // toDate: toDate?.format("YYYY-MM-DD"),
+            fromDate: fromDate?.format("DD/MM/YYYY"),
+            toDate: toDate?.format("DD/MM/YYYY"),
             status: status || undefined,
-            customer: selectedCustomer?.name || selectedCustomer?.companyName,
+            // customer: selectedCustomer?.name || selectedCustomer?.companyName,
+            customer: selectedCustomer?.name
+                ? selectedCustomer?.name
+                : selectedCustomer?.companyName
+                    ? selectedCustomer?.companyName
+                    : undefined,
             month: month ? Number(month) : undefined,
         });
 
@@ -48,6 +68,11 @@ export function QuotationFilterBar({ onFilterChange, onReset, onSearching }: any
         setSelectedCustomer(null);
         onReset();
     };
+
+
+    useEffect(() => {
+        handleApply();
+    }, []);
 
     return (
         <Box sx={{ p: 1.5, display: "flex", alignItems: "center", gap: 2 }}>
@@ -91,13 +116,49 @@ export function QuotationFilterBar({ onFilterChange, onReset, onSearching }: any
 
                 <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
 
-                    <Autocomplete
+                    {/* <Autocomplete
                         size="small"
                         options={[]}
                         renderInput={(params) => (
                             <TextField {...params} label="Khách hàng" />
                         )}
+                    /> */}
+
+
+                    <Autocomplete
+                        // fullWidth
+                        size="small"
+                        options={customers || []}
+                        getOptionLabel={(option) => option.name ? option.name : option.companyName ? option.companyName : ""}
+                        value={selectedCustomer}
+                        onChange={(_, newValue) => setSelectedCustomer(newValue)}
+                        onInputChange={(_, newInputValue) => setCustomerKeyword(newInputValue)}
+                        loading={customersLoading}
+                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                        renderOption={(props, option) => (
+                            <li {...props} key={option.id}>
+                                {option.name || option.companyName}
+                            </li>
+                        )}
+                        noOptionsText="Không tìm thấy dữ liệu"
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Tất cả khách hàng"
+                                InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
+                                        <>
+                                            {params.InputProps.endAdornment}
+                                        </>
+                                    ),
+                                }}
+                            />
+                        )}
+
                     />
+
+
 
                     <FormControl size="small">
                         <InputLabel>Trạng thái</InputLabel>
@@ -131,6 +192,7 @@ export function QuotationFilterBar({ onFilterChange, onReset, onSearching }: any
 
                     <DatePicker
                         label="Từ ngày"
+                        format="DD/MM/YYYY"
                         value={fromDate}
                         onChange={setFromDate}
                         slotProps={{ textField: { size: "small", fullWidth: true } }}
@@ -138,6 +200,7 @@ export function QuotationFilterBar({ onFilterChange, onReset, onSearching }: any
 
                     <DatePicker
                         label="Đến ngày"
+                        format="DD/MM/YYYY"
                         value={toDate}
                         onChange={setToDate}
                         slotProps={{ textField: { size: "small", fullWidth: true } }}
@@ -149,7 +212,7 @@ export function QuotationFilterBar({ onFilterChange, onReset, onSearching }: any
                         Đặt lại
                     </Button>
 
-                    <Button fullWidth variant="contained" onClick={handleApply}>
+                    <Button fullWidth variant="contained" onClick={handleApply} sx={(theme) => ({ bgcolor: theme.palette.primary.main })}>
                         Áp dụng
                     </Button>
                 </Box>

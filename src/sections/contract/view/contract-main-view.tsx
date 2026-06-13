@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
 import { DashboardContent } from "src/layouts/dashboard";
 import { IContractItem } from "src/types/contract";
-import { ContractCardList } from "../contract-card-list";
+import { ContractTableList } from "../contract-card-list";
 import { CONFIG } from "src/global-config";
 import { Iconify } from "src/components/iconify";
 import { ContractForm } from "../contract-form";
@@ -14,6 +14,9 @@ import { RoleBasedGuard } from "src/auth/guard";
 import { useCheckPermission } from "src/auth/hooks/use-check-permission";
 import { CUSTOMER_SERVICE_TAB_DATA } from "src/components/tabs/components/service-nav-tabs-data";
 import ServiceNavTabs from "src/components/tabs/service-nav-tabs";
+import { QuotationFilterBar } from "../../quotation/quotation-filter";
+import { Box } from "@mui/material";
+import { FilterValues } from "src/types/filter-values";
 
 export function ContractMainView() {
     const location = useLocation();
@@ -27,9 +30,14 @@ export function ContractMainView() {
     const isCreatingSupplierContract = useBoolean();
     const [copiedContract, setCopiedContract] = useState<IContractItem | null>(null);
     const navigate = useNavigate();
+    const [searchText, setSearchText] = useState("");
+
 
     const { permission } = useCheckPermission(['HOPDONG.VIEW']);
-
+    const [filters, setFilters] = useState<FilterValues>({
+        fromDate: "",
+        toDate: "",
+    });
     const handleViewDetails = (contract: IContractItem) => {
         setSelectedContract(contract);
         setOpenDetail(true);
@@ -80,7 +88,16 @@ export function ContractMainView() {
             sx={{ py: 10 }}
         >
             <DashboardContent
-                sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}
+                // sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}
+                sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+
+                    zoom: "80%",
+
+                    transformOrigin: "top left",
+                }}
             >
                 <CustomBreadcrumbs
                     heading="Nghiệp vụ khách hàng"
@@ -100,8 +117,34 @@ export function ContractMainView() {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs tabs={CUSTOMER_SERVICE_TAB_DATA} activePath={location.pathname} />
-                <ContractCardList
+                {/* <ServiceNavTabs tabs={CUSTOMER_SERVICE_TAB_DATA} activePath={location.pathname} /> */}
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <ServiceNavTabs
+                        tabs={CUSTOMER_SERVICE_TAB_DATA}
+                        activePath={location.pathname}
+                    />
+
+                    <QuotationFilterBar
+                        onFilterChange={setFilters}
+                        onSearching={setSearchText}
+                        onReset={() =>
+                            setFilters({
+                                fromDate: "",
+                                toDate: "",
+                            })
+                        }
+                    />
+                </Box>
+                <ContractTableList
                     onViewDetails={handleViewDetails}
                     onEditing={handleEditing}
                     page={page}
@@ -109,6 +152,8 @@ export function ContractMainView() {
                     rowsPerPage={rowsPerPage}
                     setRowsPerPage={setRowsPerPage}
                     location={location}
+                    filters={filters}
+                    searchText={searchText}
                 />
 
                 <ContractForm
