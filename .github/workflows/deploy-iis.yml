@@ -1,9 +1,20 @@
-name: Deploy Frontend to IIS (Fixed IIS Path Update)
+name: Deploy Frontend to IIS (Multi-Environment)
 
 on:
   push:
     branches:
       - main
+      - production
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Chọn môi trường để deploy'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - production
 
 jobs:
   build-deploy:
@@ -19,11 +30,41 @@ jobs:
           node-version: 20
           cache: 'npm'
 
+      - name: Set Environment Variables
+        run: |
+          TARGET_ENV="dev"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TARGET_ENV="${{ github.event.inputs.environment }}"
+          elif [ "${{ github.ref }}" = "refs/heads/production" ]; then
+            TARGET_ENV="production"
+          fi
+          
+          echo "TARGET_ENV=$TARGET_ENV" >> $GITHUB_ENV
+          
+          if [ "$TARGET_ENV" = "production" ]; then
+            echo "DEPLOY_PATH_WIN=C:\inetpub\wwwroot\DCSE_ProductionV2_Client" >> $GITHUB_ENV
+            echo "DEPLOY_PATH_NIX=C:/inetpub/wwwroot/DCSE_ProductionV2_Client" >> $GITHUB_ENV
+            echo "IIS_SITE=DCSE_ProductionV2_Client" >> $GITHUB_ENV
+            echo "IIS_APPPOOL=DCSE_ProductionV2_Client" >> $GITHUB_ENV
+            echo "API_URL=https://dcseproductionv2.eposh.io.vn/" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_PATH_WIN=C:\inetpub\wwwroot\DCSE_V2_Client" >> $GITHUB_ENV
+            echo "DEPLOY_PATH_NIX=C:/inetpub/wwwroot/DCSE_V2_Client" >> $GITHUB_ENV
+            echo "IIS_SITE=DCS_V2" >> $GITHUB_ENV
+            echo "IIS_APPPOOL=DCS_V2" >> $GITHUB_ENV
+            echo "API_URL=" >> $GITHUB_ENV
+          fi
+
       - name: Install dependencies
         run: npm install
 
       - name: Create .env file
-        run: echo "${{ secrets.DOTENV }}" > .env
+        run: |
+          echo "${{ secrets.DOTENV }}" > .env
+          if [ -n "${{ env.API_URL }}" ]; then
+            echo "" >> .env
+            echo "VITE_SERVER_URL=${{ env.API_URL }}" >> .env
+          fi
 
       - name: Build project
         run: npm run build -- --outDir dist
@@ -41,7 +82,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASS }}
           script: |
-            powershell -Command "New-Item -ItemType Directory -Force -Path 'C:\inetpub\wwwroot\DCSE_V2_Client\${{ env.DEPLOY_VERSION }}\dist'"
+            powershell -Command "New-Item -ItemType Directory -Force -Path '${{ env.DEPLOY_PATH_WIN }}\${{ env.DEPLOY_VERSION }}\dist'"
 
       # 📦 Copy file build lên VPS vào folder version MỚI
       - name: Copy to VPS
@@ -51,7 +92,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASS }}
           source: "dist"
-          target: "C:/inetpub/wwwroot/DCSE_V2_Client/${{ env.DEPLOY_VERSION }}/dist"
+          target: "${{ env.DEPLOY_PATH_NIX }}/${{ env.DEPLOY_VERSION }}/dist"
           strip_components: 1
           
       # 🔄 Cập nhật IIS Path và Restart
@@ -62,4 +103,4 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASS }}
           script: |
-            powershell -NoProfile -ExecutionPolicy Bypass -Command "Import-Module WebAdministration; $path = 'C:\inetpub\wwwroot\DCSE_V2_Client\${{ env.DEPLOY_VERSION }}\dist'; if (-Not (Test-Path $path)) { throw 'Loi: Thu muc khong ton tai' }; Copy-Item -Path 'C:\inetpub\wwwroot\DCSE_V2_Client\Sharing\*.*' -Destination $path -Force; Set-ItemProperty 'IIS:\Sites\DCS_V2' -Name physicalPath -Value $path; C:\Windows\System32\inetsrv\appcmd.exe recycle apppool /apppool.name:DCS_V2; Start-Sleep -Seconds 2; C:\Windows\System32\inetsrv\appcmd.exe start apppool /apppool.name:DCS_V2; C:\Windows\System32\inetsrv\appcmd.exe start site /site.name:DCS_V2; Write-Host 'Deploy FE thanh cong!'"
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "Import-Module WebAdministration; $path = '${{ env.DEPLOY_PATH_WIN }}\${{ env.DEPLOY_VERSION }}\dist'; if (-Not (Test-Path $path)) { throw 'Loi: Thu muc khong ton tai' }; Copy-Item -Path '${{ env.DEPLOY_PATH_WIN }}\Sharing\*.*' -Destination $path -Force; Set-ItemProperty 'IIS:\Sites\${{ env.IIS_SITE }}' -Name physicalPath -Value $path; C:\Windows\System32\inetsrv\appcmd.exe recycle apppool /apppool.name:${{ env.IIS_APPPOOL }}; Start-Sleep -Seconds 2; C:\Windows\System32\inetsrv\appcmd.exe start apppool /apppool.name:${{ env.IIS_APPPOOL }}; C:\Windows\System32\inetsrv\appcmd.exe start site /site.name:${{ env.IIS_SITE }}; Write-Host 'Deploy FE ${{ env.TARGET_ENV }} thanh cong!'"
