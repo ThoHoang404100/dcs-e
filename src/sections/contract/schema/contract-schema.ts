@@ -74,6 +74,7 @@ export const contractSchema = z.object({
     status: z.number().min(0).max(5),
     note: z.string().optional(),
     discount: z.number().min(0),
+    editorId: z.number().min(1, "Vui lòng chọn người lập"),
     products: customItemsSchema,
 }).refine((data) => data.copiesNo >= 2, {
     message: "Số bản sao phải ít nhất là 2",

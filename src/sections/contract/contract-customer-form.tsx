@@ -6,26 +6,32 @@ import { toast } from "sonner";
 import { ICustomerDto, ICustomerItem } from "src/types/customer";
 import { createOrUpdateCustomer } from "src/actions/customer";
 import { mutate } from "swr";
-import { endpoints } from "src/lib/axios";
 import { ContractFormValues } from "./schema/contract-schema";
 import { CustomerFormValues, customerSchema } from "../quotation/schema/new-customer-schema";
+import { useEffect } from "react";
 
-type props = {
+type Props = {
     openChild: boolean;
-    setOpenChild: (value: any) => void;
+    setOpenChild: (value: boolean) => void;
     setCustomerKeyword: (c: string) => void;
     methodsContract: UseFormReturn<ContractFormValues>;
     setSelectedCustomer: (c: ICustomerItem | null) => void;
-}
+};
 
-export function ContractCustomerForm({ openChild, setOpenChild, setCustomerKeyword, methodsContract, setSelectedCustomer }: props) {
-    const defaultValues: CustomerFormValues =
-    {
-        customerType: "",
+export function ContractCustomerForm({
+    openChild,
+    setOpenChild,
+    setCustomerKeyword,
+    methodsContract,
+    setSelectedCustomer,
+}: Props) {
+    const defaultValues: CustomerFormValues = {
+        customerType: "KHDN",
         name: "",
         phone: "",
         taxCode: "",
         companyName: "",
+        address: "",
     };
 
     const methods = useForm<CustomerFormValues>({
@@ -34,15 +40,27 @@ export function ContractCustomerForm({ openChild, setOpenChild, setCustomerKeywo
         defaultValues,
     });
 
-
     const {
         reset,
         handleSubmit,
         formState: { isSubmitting },
-        watch
+        watch,
     } = methods;
 
     const customerType = watch("customerType");
+
+    useEffect(() => {
+        if (openChild) {
+            reset({
+                customerType: "KHDN",
+                name: "",
+                phone: "",
+                taxCode: "",
+                companyName: "",
+                address: "",
+            });
+        }
+    }, [openChild, reset]);
 
     const onSubmit = handleSubmit(async (data: CustomerFormValues) => {
         try {
@@ -62,13 +80,16 @@ export function ContractCustomerForm({ openChild, setOpenChild, setCustomerKeywo
             };
 
             const { data: dataCreated } = await createOrUpdateCustomer(undefined, payloadData);
+
             reset();
             setOpenChild(false);
+
             mutate(
                 (k) => typeof k === "string" && k.startsWith("/api/v1/customers/customers"),
                 undefined,
                 { revalidate: true }
             );
+
             const createdCustomer: ICustomerItem = {
                 id: String(dataCreated.id),
                 phone: dataCreated.phone ?? '',
@@ -92,57 +113,70 @@ export function ContractCustomerForm({ openChild, setOpenChild, setCustomerKeywo
                 position: ''
             };
 
-            methodsContract.setValue('customerId', Number(createdCustomer.id) ?? 0, { shouldValidate: true });
+            methodsContract.setValue('customerId', Number(createdCustomer.id) ?? 0, {
+                shouldValidate: true,
+                shouldDirty: true
+            });
+
             setCustomerKeyword(createdCustomer.name || createdCustomer.companyName || '');
             setSelectedCustomer(createdCustomer);
-            toast.success('Tạo mới dữ liệu khách hàng thành công!');
+            toast.success('Tạo mới khách hàng thành công!');
 
         } catch (error: any) {
             console.error(error);
-            if (error.message) {
-                toast.error(error.message);
-            } else {
-                toast.error("Đã có lỗi xảy ra!");
-            }
+            toast.error(error.message || "Đã có lỗi xảy ra!");
         }
     });
 
     return (
-        <Dialog open={openChild} onClose={() => { setOpenChild(false); methods.reset(); }} fullWidth maxWidth="sm">
+        <Dialog
+            open={openChild}
+            onClose={() => {
+                setOpenChild(false);
+                reset(defaultValues);
+            }}
+            fullWidth
+            maxWidth="sm"
+        >
             <Form methods={methods} onSubmit={onSubmit}>
                 <DialogTitle sx={{ p: 2 }}>Tạo khách hàng mới</DialogTitle>
                 <DialogContent sx={{ py: '10px !important' }}>
                     <Field.Select sx={{ mb: 2 }} name="customerType" label="Loại khách hàng" required>
-                        <MenuItem key={1} value="KHCN">
-                            Khách hàng cá nhân
-                        </MenuItem>
-                        <MenuItem key={2} value="KHDN">
-                            Khách hàng doanh nghiệp
-                        </MenuItem>
+                        <MenuItem value="KHCN">Khách hàng cá nhân</MenuItem>
+                        <MenuItem value="KHDN">Khách hàng doanh nghiệp</MenuItem>
                     </Field.Select>
+
                     {customerType === "KHDN" && (
                         <Stack direction="row" gap={2} mb={2}>
                             <Field.TaxCode name="taxCode" label="Mã số thuế" required />
                             <Field.Text name="companyName" label="Tên công ty" required />
                         </Stack>
                     )}
+
                     <Stack direction="row" gap={2}>
-                        <Field.Text name="name" label="Tên khách hàng" required={customerType === "KHCN"} />
-                        {customerType === "KHDN"
-                            ?
+                        <Field.Text
+                            name="name"
+                            label="Tên khách hàng"
+                            required={customerType === "KHCN"}
+                        />
+                        {customerType === "KHDN" ? (
                             <Field.Text name="address" label="Địa chỉ" required />
-                            :
+                        ) : (
                             <Field.PhoneField name="phone" label="Số điện thoại" required />
-                        }
+                        )}
                     </Stack>
                 </DialogContent>
+
                 <DialogActions>
                     <Box sx={{ width: '100%' }}>
                         <Stack direction="row" spacing={2} width="100%" minHeight={40}>
                             <Button
                                 variant="outlined"
                                 color="inherit"
-                                onClick={() => { setOpenChild(false); methods.reset(); }}
+                                onClick={() => {
+                                    setOpenChild(false);
+                                    reset(defaultValues);
+                                }}
                                 fullWidth
                             >
                                 Hủy bỏ
@@ -150,7 +184,6 @@ export function ContractCustomerForm({ openChild, setOpenChild, setCustomerKeywo
                             <Button
                                 type="submit"
                                 variant="contained"
-                                sx={{ ml: 1 }}
                                 loading={isSubmitting}
                                 fullWidth
                             >
