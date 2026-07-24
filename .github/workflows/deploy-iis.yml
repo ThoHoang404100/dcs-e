@@ -69,23 +69,38 @@ jobs:
       - name: Build project
         run: npm run build -- --outDir dist
 
-      # 📦 Copy file build lên VPS (ghi đè trực tiếp)
-      - name: Copy to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASS }}
-          source: "dist"
-          target: "${{ env.DEPLOY_PATH_NIX }}"
-          strip_components: 1
-          
-      # 🔄 Cập nhật IIS Path và Restart
-      - name: Update IIS Path and Restart
+      # 📦 Nén file build
+      - name: Zip build
+        run: |
+          cd dist
+          zip -r ../build.zip .
+          cd ..
+
+      # 📁 Đảm bảo thư mục tồn tại trên VPS
+      - name: Ensure Directory Exists
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASS }}
           script: |
-            powershell -NoProfile -ExecutionPolicy Bypass -Command "Import-Module WebAdministration; $path = '${{ env.DEPLOY_PATH_WIN }}'; if (-Not (Test-Path $path)) { throw 'Loi: Thu muc khong ton tai' }; Copy-Item -Path '${{ env.DEPLOY_PATH_WIN }}\Sharing\*.*' -Destination $path -Force; Set-ItemProperty 'IIS:\Sites\${{ env.IIS_SITE }}' -Name physicalPath -Value $path; C:\Windows\System32\inetsrv\appcmd.exe recycle apppool /apppool.name:${{ env.IIS_APPPOOL }}; Start-Sleep -Seconds 2; C:\Windows\System32\inetsrv\appcmd.exe start apppool /apppool.name:${{ env.IIS_APPPOOL }}; C:\Windows\System32\inetsrv\appcmd.exe start site /site.name:${{ env.IIS_SITE }}; Write-Host 'Deploy FE ${{ env.TARGET_ENV }} thanh cong!'"
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "if (-Not (Test-Path '${{ env.DEPLOY_PATH_WIN }}')) { New-Item -ItemType Directory -Force -Path '${{ env.DEPLOY_PATH_WIN }}' }"
+
+      # 🚀 Upload file nén lên VPS bằng scp
+      - name: Upload Build
+        env:
+          SSHPASS: ${{ secrets.VPS_PASS }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+          sshpass -e scp -o StrictHostKeyChecking=no build.zip ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:"${{ env.DEPLOY_PATH_NIX }}/build.zip"
+          
+      # 🔄 Giải nén, cập nhật IIS Path và Restart
+      - name: Extract and Update IIS
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASS }}
+          script: |
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "Expand-Archive -Path '${{ env.DEPLOY_PATH_WIN }}\build.zip' -DestinationPath '${{ env.DEPLOY_PATH_WIN }}' -Force; Remove-Item -Path '${{ env.DEPLOY_PATH_WIN }}\build.zip' -Force; Import-Module WebAdministration; $path = '${{ env.DEPLOY_PATH_WIN }}'; if (-Not (Test-Path $path)) { throw 'Loi: Thu muc khong ton tai' }; if (Test-Path '${{ env.DEPLOY_PATH_WIN }}\Sharing') { Copy-Item -Path '${{ env.DEPLOY_PATH_WIN }}\Sharing\*.*' -Destination $path -Force }; Set-ItemProperty 'IIS:\Sites\${{ env.IIS_SITE }}' -Name physicalPath -Value $path; C:\Windows\System32\inetsrv\appcmd.exe recycle apppool /apppool.name:${{ env.IIS_APPPOOL }}; Start-Sleep -Seconds 2; C:\Windows\System32\inetsrv\appcmd.exe start apppool /apppool.name:${{ env.IIS_APPPOOL }}; C:\Windows\System32\inetsrv\appcmd.exe start site /site.name:${{ env.IIS_SITE }}; Write-Host 'Deploy FE ${{ env.TARGET_ENV }} thanh cong!'"
