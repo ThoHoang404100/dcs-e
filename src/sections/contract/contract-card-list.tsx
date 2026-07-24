@@ -172,7 +172,7 @@ export function ContractTableList({ ...props }: Props) {
 
     const totalMainMoney = useMemo(() => {
         if (!contracts) return 0;
-        return contracts.reduce((sum: number, contract: IContractItem) => sum + (contract.downPayment || 0), 0);
+        return contracts.reduce((sum: number, contract: IContractItem) => sum + (contract.total || 0), 0);
     }, [contracts]);
 
     const handleSplitterMouseDown = (e: React.MouseEvent) => {
@@ -275,7 +275,7 @@ export function ContractTableList({ ...props }: Props) {
                                                 ) : contract.status}
                                             </TableCell>
                                             <TableCell style={tableCellStyle} align="right">
-                                                {(contract.downPayment || 0).toLocaleString('vi-VN')}
+                                                {(contract.total || 0).toLocaleString('vi-VN')}
                                             </TableCell>
                                             <TableCell style={tableCellStyle} align="center" onClick={e => e.stopPropagation()}>
                                                 <Tooltip title="Xem chi tiết"><IconButton size="small" onClick={() => onViewDetails(contract)}><VisibilityIcon fontSize="small" /></IconButton></Tooltip>
