@@ -31,6 +31,7 @@ export type IContractItem = {
     note: string;
     seller: string;
     discount: number;
+    editorId: number;
 };
 
 export type IContractListData = {
@@ -73,6 +74,7 @@ export type IContractRemainingProduct = {
 
 export type IContractDetails = {
     cusstomerID: number;
+    employeeID: number;
     contractID: number;
     contractNo: string;
     products: IContractProduct[];
@@ -135,6 +137,7 @@ export type IContractDao = {
     status: number;
     note: string;
     discount: number;
+    seller: number;
 };
 
 export type IContractProductToDelete = {
