@@ -66,7 +66,7 @@ export function ContractForm({
         pageNumber: 1,
         pageSize: 999,
         key: debouncedCustomerKw,
-        enabled: !!selectedContract?.id || !!customerIdFromQuotation
+        enabled: true
     });
 
     const [isCreatingSupplier, setIsCreatingSupplier] = useState(false);

@@ -569,6 +569,10 @@ export function ContractForm({
                                                     getOptionLabel={(opt) => opt?.companyName || ''}
                                                     isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
                                                     value={selectedSupplier}
+                                                    onChange={(e: any, newValue: any) => {
+                                                        methods.setValue('supplierId', newValue?.id || 0, { shouldValidate: true });
+                                                        setSelectedSupplier(newValue);
+                                                    }}
                                                     size="small"
                                                     fullWidth
                                                 />
@@ -581,6 +585,10 @@ export function ContractForm({
                                                     getOptionLabel={(opt) => opt?.name || opt?.companyName || ''}
                                                     isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
                                                     value={selectedCustomer}
+                                                    onChange={(e: any, newValue: any) => {
+                                                        methods.setValue('customerId', newValue?.id || 0, { shouldValidate: true });
+                                                        setSelectedCustomer(newValue);
+                                                    }}
                                                     size="small"
                                                     fullWidth
                                                 />

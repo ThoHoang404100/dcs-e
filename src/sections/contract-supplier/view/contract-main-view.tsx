@@ -1,8 +1,10 @@
+import { Button } from "@mui/material";
 import { useEffect, useState } from "react";
 import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
 import { DashboardContent } from "src/layouts/dashboard";
 import { ContractCardList } from "../contract-card-list";
 import { CONFIG } from "src/global-config";
+import { Iconify } from "src/components/iconify";
 import { ContractForm } from "../contract-form";
 import { ContractDetails } from "../contract-details";
 import { useLocation, useNavigate } from "react-router";
@@ -102,6 +104,15 @@ export function ContractMainView() {
                         { name: 'Nghiệp vụ nhà cung cấp' },
                         { name: 'Hợp đồng' },
                     ]}
+                    action={
+                        <Button variant="contained"
+                            startIcon={<Iconify icon="mingcute:add-line" />}
+                            sx={(theme) => ({ bgcolor: theme.palette.primary.main })}
+                            onClick={() => { setOpenForm(true); setSelectedContract(null); setCopiedContract(null); }}
+                        >
+                            Tạo hợp đồng
+                        </Button>
+                    }
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
