@@ -228,7 +228,7 @@ export function ContractPdfDocument({ contract, currentContract, companyInfoData
                 {renderHeader({ companyInfoData })}
                 <View style={styles.body}>
                     {renderTitle(contractNo)}
-                    {renderLaw(createDate)}
+                    {renderLaw(signatureDate)}
                     {renderTwoSides({
                         customerAddress,
                         companyName,
