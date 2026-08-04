@@ -32,27 +32,26 @@ jobs:
 
       - name: Set Environment Variables
         run: |
-          TARGET_ENV="dev"
+          TARGET_ENV="production"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             TARGET_ENV="${{ github.event.inputs.environment }}"
           elif [ "${{ github.ref }}" = "refs/heads/production" ]; then
             TARGET_ENV="production"
           fi
           
-          echo "TARGET_ENV=$TARGET_ENV" >> $GITHUB_ENV
-          
           if [ "$TARGET_ENV" = "production" ]; then
             echo "DEPLOY_PATH_WIN=C:\inetpub\wwwroot\DCSE_ProductionV2_Client" >> $GITHUB_ENV
             echo "DEPLOY_PATH_NIX=C:/inetpub/wwwroot/DCSE_ProductionV2_Client" >> $GITHUB_ENV
-            echo "IIS_SITE=DCSE_ProductionV2_Client" >> $GITHUB_ENV
-            echo "IIS_APPPOOL=DCSE_ProductionV2_Client" >> $GITHUB_ENV
+            echo "IIS_SITE=DCSE_Production_V2_Client" >> $GITHUB_ENV
+            echo "IIS_APPPOOL=DCSE_Production_V2_Client" >> $GITHUB_ENV
             echo "API_URL=https://apiproduction.dcse.vn/" >> $GITHUB_ENV
           else
-            echo "DEPLOY_PATH_WIN=C:\inetpub\wwwroot\DCSE_V2_Client" >> $GITHUB_ENV
-            echo "DEPLOY_PATH_NIX=C:/inetpub/wwwroot/DCSE_V2_Client" >> $GITHUB_ENV
-            echo "IIS_SITE=DCS_V2" >> $GITHUB_ENV
-            echo "IIS_APPPOOL=DCS_V2" >> $GITHUB_ENV
-            echo "API_URL=" >> $GITHUB_ENV
+            # Tạm thời cấu hình nhánh main cũng deploy chung vào thư mục Production
+            echo "DEPLOY_PATH_WIN=C:\inetpub\wwwroot\DCSE_ProductionV2_Client" >> $GITHUB_ENV
+            echo "DEPLOY_PATH_NIX=C:/inetpub/wwwroot/DCSE_ProductionV2_Client" >> $GITHUB_ENV
+            echo "IIS_SITE=DCSE_Production_V2_Client" >> $GITHUB_ENV
+            echo "IIS_APPPOOL=DCSE_Production_V2_Client" >> $GITHUB_ENV
+            echo "API_URL=https://apiproduction.dcse.vn/" >> $GITHUB_ENV
           fi
 
       - name: Install dependencies
