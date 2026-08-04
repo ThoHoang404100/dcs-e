@@ -1,7 +1,13 @@
 import { Text, View } from "@react-pdf/renderer";
 
 export const renderLaw = (createDate?: any) => {
-    const today = createDate ? new Date(createDate) : new Date();
+    let today = new Date();
+    if (createDate) {
+        const parsed = new Date(createDate);
+        if (!isNaN(parsed.getTime())) {
+            today = parsed;
+        }
+    }
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
