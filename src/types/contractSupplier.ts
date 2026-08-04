@@ -35,7 +35,9 @@ export type IContractSupplyItem = {
     deliveryTime: IDateValue;
     downPayment: number;
     nextPayment: number;
+    nextPaymentDate?: IDateValue;
     lastPayment: number;
+    lastPaymentDate?: IDateValue;
     total: number;
     copiesNo: number;
     keptNo: number;

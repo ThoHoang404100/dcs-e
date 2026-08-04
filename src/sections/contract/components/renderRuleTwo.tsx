@@ -11,15 +11,16 @@ type props = {
     nextPayment?: number;
     lastPayment?: number;
     signatureDate?: IDateValue;
+    nextPaymentDate?: IDateValue;
     total?: number;
     deliveryAddress?: string;
 }
 
-export const renderRuleTwo = ({ downPayment, nextPayment, lastPayment, signatureDate, total, deliveryAddress }: props) => {
+export const renderRuleTwo = ({ downPayment, nextPayment, lastPayment, signatureDate, nextPaymentDate, total, deliveryAddress }: props) => {
     const phaseTexts = [
         "- Bên A thanh toán cho Bên B bằng hình thức chuyển khoản thành ba (03) đợt, cụ thể:",
         `Ngay sau khi ký hợp đồng, Bên A thanh toán cho Bên B số tiền ${fCurrencyNoUnit(downPayment)} (${capitalizeFirstLetter(fRenderTextNumber(downPayment || 0))}).`,
-        `Trước ngày ${fDate(signatureDate)}, Bên A thanh toán cho Bên B số tiền ${fCurrencyNoUnit(nextPayment)} (${capitalizeFirstLetter(fRenderTextNumber(nextPayment || 0))}).`,
+        `Trước ngày ${fDate(nextPaymentDate || signatureDate)}, Bên A thanh toán cho Bên B số tiền ${fCurrencyNoUnit(nextPayment)} (${capitalizeFirstLetter(fRenderTextNumber(nextPayment || 0))}).`,
         `Trong vòng 15 (mười lăm) ngày kể từ ngày Bên B bàn giao thiết bị cho Bên A, Bên A thanh toán cho Bên B 30% (ba mươi phần trăm) giá trị hợp đồng, tương đương ${fCurrencyNoUnit(lastPayment)} (${capitalizeFirstLetter(fRenderTextNumber(lastPayment || 0))}).`
     ];
 

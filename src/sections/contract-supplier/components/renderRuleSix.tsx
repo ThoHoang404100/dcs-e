@@ -19,6 +19,7 @@ type RenderRuleSixProps = {
     nextPayment?: number;
     lastPayment?: number;
     signatureDate?: IDateValue;
+    nextPaymentDate?: IDateValue;
     total?: number;
     deliveryAddress?: string;
     currentContract?: ResponseContractSupplier<IContractSupplyForDetail>;
@@ -35,6 +36,7 @@ export const renderRules = ({
     nextPayment,
     lastPayment,
     signatureDate,
+    nextPaymentDate,
     total,
     deliveryAddress,
     currentContract,
@@ -68,7 +70,7 @@ export const renderRules = ({
     const phaseTexts = [
         `- Bên A thanh toán cho Bên B bằng hình thức chuyển khoản thành ${formattedText} (${formattedPhaseCount}) đợt, cụ thể:`,
         `Ngay sau khi ký hợp đồng, Bên A thanh toán cho Bên B số tiền ${fCurrencyNoUnit(downPayment)} (${capitalizeFirstLetter(fRenderTextNumber(downPayment || 0))}).`,
-        `Trước ngày ${fDate(signatureDate)}, Bên A thanh toán cho Bên B số tiền ${fCurrencyNoUnit(nextPayment)} (${capitalizeFirstLetter(fRenderTextNumber(nextPayment || 0))}).`,
+        `Trước ngày ${fDate(nextPaymentDate || signatureDate)}, Bên A thanh toán cho Bên B số tiền ${fCurrencyNoUnit(nextPayment)} (${capitalizeFirstLetter(fRenderTextNumber(nextPayment || 0))}).`,
         `Trong vòng 15 (mười lăm) ngày kể từ ngày Bên B bàn giao thiết bị cho Bên A, tương đương ${fCurrencyNoUnit(lastPayment)} (${capitalizeFirstLetter(fRenderTextNumber(lastPayment || 0))}).`
     ];
 
