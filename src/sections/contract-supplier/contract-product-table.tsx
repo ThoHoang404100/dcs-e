@@ -38,17 +38,26 @@ export function ContractItemsTable({
     const calcAmount = (item: { qty?: number; price?: number; vat?: number }) => {
         const qty = Number(item?.qty) || 0;
         const price = Number(item?.price) || 0;
-        const vat = Number(item?.vat) || 0;
+        const rawVat = Number(item?.vat) || 0;
+        const vat = rawVat === 255 ? 0 : rawVat;
         return Math.round(qty * price * (1 + vat / 100));
     };
 
-    const total = (items || []).reduce((acc, i) => acc + calcAmount(i), 0);
+    const subTotal = (items || []).reduce((acc, i) => {
+        const qty = Number(i?.qty) || 0;
+        const price = Number(i?.price) || 0;
+        return acc + qty * price;
+    }, 0);
 
-    // const discountRate = discount ? discount / 100 : 0;
+    const totalVat = (items || []).reduce((acc, i) => {
+        const qty = Number(i?.qty) || 0;
+        const price = Number(i?.price) || 0;
+        const rawVat = Number(i?.vat) || 0;
+        const vat = rawVat === 255 ? 0 : rawVat;
+        return acc + Math.round(qty * price * (vat / 100));
+    }, 0);
 
-    // const subtotal = total * (1 - discountRate);
-
-    const roundedTotal = Math.round(total);
+    const roundedTotal = Math.round(subTotal + totalVat);
 
     const openDel = useBoolean();
 
@@ -125,7 +134,7 @@ export function ContractItemsTable({
     }, [roundedTotal]);
 
     return (
-        <Stack width={{ xs: "100%", sm: "100%", md: "100%", lg: "70%" }} spacing={2} sx={{ height: "100%" }}>
+        <Stack spacing={2} sx={{ height: "100%" }}>
             <Typography variant="subtitle2">Sản phẩm</Typography>
 
             <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
@@ -145,13 +154,11 @@ export function ContractItemsTable({
                     />
                     <Stack
                         direction="row"
-                        gap={2}
-                        my={1}
-                        justifyContent="space-between"
                         pt={1}
                         sx={{
                             borderTop: "1px solid",
                             borderColor: "divider",
+                            mb: 2
                         }}
                     >
                         <Button
@@ -170,35 +177,6 @@ export function ContractItemsTable({
                             Thêm sản phẩm
                         </Button>
                     </Stack>
-                    <Box
-                        sx={{
-                            position: "sticky",
-                            bottom: -50,
-                            borderTop: "1px solid",
-                            borderColor: "divider",
-                            pt: 1,
-                            pb: 2,
-                            bgcolor: "background.paper",
-                            zIndex: 1,
-                            display: 'flex',
-                            flexDirection: "row",
-                            gap: '50px',
-                            justifyContent: 'space-between'
-                        }}
-                    >
-                        <Stack direction="column" justifyContent="flex-start" textAlign={'start'}>
-                            <Typography fontWeight={600}>Bằng chữ</Typography>
-                            <Typography fontSize={15}>
-                                {capitalizeFirstLetter(fRenderTextNumber(roundedTotal))}
-                            </Typography>
-                        </Stack>
-                        <Stack direction="column" justifyContent="flex-end" textAlign={'end'}>
-                            <Typography fontWeight={600}>Tổng cộng</Typography>
-                            <Typography fontWeight="bold" whiteSpace="nowrap">
-                                {fCurrency(roundedTotal)}
-                            </Typography>
-                        </Stack>
-                    </Box>
                 </Box>
             </Box>
             {confirmDeleteUpdateProduct()}

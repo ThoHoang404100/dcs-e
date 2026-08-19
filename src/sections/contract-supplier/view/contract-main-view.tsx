@@ -14,9 +14,11 @@ import { useCheckPermission } from "src/auth/hooks/use-check-permission";
 import { RoleBasedGuard } from "src/auth/guard";
 import ServiceNavTabs from "src/components/tabs/service-nav-tabs";
 import { SUPPLIER_SERVICE_TAB_DATA } from "src/components/tabs/components/service-nav-tabs-data";
+import { ContractFilterBar } from "../contract-filter";
 import { FilterValues } from "src/types/filter-values";
 import { formatDate } from "src/utils/format-time-vi";
 import { useGetCompanyInfo } from "src/actions/companyInfo";
+import { Box } from "@mui/material";
 
 export function ContractMainView() {
     const location = useLocation();
@@ -96,7 +98,15 @@ export function ContractMainView() {
             sx={{ py: 10 }}
         >
             <DashboardContent
-                sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}
+                sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+
+                    zoom: "80%",
+
+                    transformOrigin: "top left",
+                }}
             >
                 <CustomBreadcrumbs
                     heading="Nghiệp vụ nhà cung cấp"
@@ -116,7 +126,37 @@ export function ContractMainView() {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs tabs={SUPPLIER_SERVICE_TAB_DATA} activePath={location.pathname} />
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <ServiceNavTabs tabs={SUPPLIER_SERVICE_TAB_DATA} activePath={location.pathname} />
+                    
+                    <ContractFilterBar
+                        onFilterChange={(values) => {
+                            setFilters(values);
+                            setPage(0);
+                        }}
+                        onSearching={setSearchText}
+                        onReset={() => {
+                            setFilters({
+                                fromDate: formatDate(lastMonth),
+                                toDate: formatDate(today),
+                                customer: undefined,
+                                month: undefined,
+                                status: undefined
+                            });
+                            setPage(0);
+                        }}
+                    />
+                </Box>
+
                 <ContractCardList
                     onViewDetails={handleViewDetails}
                     onEditing={handleEditing}
@@ -131,6 +171,7 @@ export function ContractMainView() {
                     setFilters={setFilters}
                     setSearchText={setSearchText}
                     companyInfoData={companyInfoData}
+                    mutation={mutation}
                 />
 
                 <ContractForm

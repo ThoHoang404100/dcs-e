@@ -13,6 +13,8 @@ import {
 } from "@mui/material";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { Field, Form } from "src/components/hook-form";
+import { fCurrency, fRenderTextNumber } from "src/utils/format-number";
+import { capitalizeFirstLetter } from "src/utils/format-string";
 import { Iconify } from "src/components/iconify";
 import {
     IContractDao,
@@ -188,11 +190,26 @@ export function ContractForm({
     const calcAmount = (item: { qty?: number; price?: number; vat?: number }) => {
         const qty = Number(item?.qty) || 0;
         const price = Number(item?.price) || 0;
-        const vat = Number(item?.vat) || 0;
+        let vat = Number(item?.vat) || 0;
+        if (vat === 255) vat = 0;
         return qty * price * (1 + vat / 100);
     };
 
-    const total = Math.round((products || []).reduce((acc, i) => acc + calcAmount(i), 0));
+    const subTotal = (products || []).reduce((acc, i) => {
+        const qty = Number(i?.qty) || 0;
+        const price = Number(i?.price) || 0;
+        return acc + qty * price;
+    }, 0);
+
+    const totalVat = (products || []).reduce((acc, i) => {
+        const qty = Number(i?.qty) || 0;
+        const price = Number(i?.price) || 0;
+        const rawVat = Number(i?.vat) || 0;
+        const vat = rawVat === 255 ? 0 : rawVat;
+        return acc + Math.round(qty * price * (vat / 100));
+    }, 0);
+
+    const total = Math.round(subTotal + totalVat);
 
     useEffect(() => {
         if (CopiedContract) {
@@ -381,28 +398,26 @@ export function ContractForm({
             return;
         }
 
-        const down = Number(downPayment) || 0;
-        const next = Number(nextPayment) || 0;
+        let currentDown = Number(downPayment) || 0;
+        const currentNext = Number(nextPayment) || 0;
+        const currentLast = Number(lastPayment) || 0;
 
-        if (down === 0 && next === 0) {
-            setValue("downPayment", total, { shouldValidate: false });
+        if (currentDown === 0 && currentNext === 0 && currentLast === 0) {
+            currentDown = Math.round(total / 2);
+            setValue("downPayment", currentDown, { shouldValidate: false });
+        }
+
+        const nextDefault = Math.max(0, total - currentDown);
+
+        if (currentDown > total) {
+            setError("downPayment", { type: "manual", message: "Tạm ứng vượt quá giá trị hợp đồng" });
             setValue("nextPayment", 0, { shouldValidate: false });
-            setValue("lastPayment", 0, { shouldValidate: false });
-            clearErrors(["downPayment", "nextPayment"]);
-            return;
-        }
-
-        const lastDefault = Math.max(0, total - down - next);
-
-        if (down + next > total) {
-            setError("downPayment", { type: "manual", message: "Tổng các đợt vượt quá giá trị hợp đồng" });
-            setError("nextPayment", { type: "manual", message: "Tổng các đợt vượt quá giá trị hợp đồng" });
-            setValue("lastPayment", 0);
         } else {
-            clearErrors(["downPayment", "nextPayment"]);
-            setValue("lastPayment", lastDefault, { shouldValidate: true });
+            clearErrors(["downPayment"]);
+            setValue("nextPayment", nextDefault, { shouldValidate: true });
         }
-    }, [total, downPayment, nextPayment, isEditingPayment, setValue, setError, clearErrors]);
+        setValue("lastPayment", 0, { shouldValidate: false });
+    }, [total, downPayment, isEditingPayment, setValue, setError, clearErrors]);
 
     const onSubmit = handleSubmit(async (data: ContractFormValues) => {
         try {
@@ -663,44 +678,27 @@ export function ContractForm({
                                             </Typography>
 
                                             {(() => {
-                                                const showDown = Number(downPayment) !== 0;
-                                                const showNext = Number(nextPayment) !== 0;
-                                                const showLast = Number(lastPayment) !== 0;
-                                                const activeColumns = [showDown, showNext, showLast].filter(Boolean).length;
-
-                                                if (activeColumns === 0) return null;
+                                                if (total === 0) return null;
 
                                                 return (
                                                     <Box
                                                         sx={{
                                                             display: 'grid',
-                                                            gridTemplateColumns: `repeat(${activeColumns}, 1fr)`,
+                                                            gridTemplateColumns: 'repeat(2, 1fr)',
                                                             gap: 1
                                                         }}
                                                     >
-                                                        {showDown && (
-                                                            <Field.VNCurrencyInput
-                                                                label="Lần 1 (Tạm ứng)"
-                                                                name="downPayment"
-                                                                onFocus={() => setIsEditingPayment(true)}
-                                                                onBlur={() => setIsEditingPayment(false)}
-                                                            />
-                                                        )}
-                                                        {showNext && (
-                                                            <Field.VNCurrencyInput
-                                                                label="Lần 2"
-                                                                name="nextPayment"
-                                                                onFocus={() => setIsEditingPayment(true)}
-                                                                onBlur={() => setIsEditingPayment(false)}
-                                                            />
-                                                        )}
-                                                        {showLast && (
-                                                            <Field.VNCurrencyInput
-                                                                label="Lần 3"
-                                                                name="lastPayment"
-                                                                disabled
-                                                            />
-                                                        )}
+                                                        <Field.VNCurrencyInput
+                                                            label="Lần 1 (Tạm ứng)"
+                                                            name="downPayment"
+                                                            onFocus={() => setIsEditingPayment(true)}
+                                                            onBlur={() => setIsEditingPayment(false)}
+                                                        />
+                                                        <Field.VNCurrencyInput
+                                                            label="Lần 2 (Còn lại)"
+                                                            name="nextPayment"
+                                                            disabled
+                                                        />
                                                     </Box>
                                                 );
                                             })()}
@@ -733,25 +731,37 @@ export function ContractForm({
                                         alignItems="center"
                                         sx={{
                                             height: '100%',
-                                            minHeight: 200,
                                             pl: { md: 1.5 },
-                                            textAlign: 'center'
                                         }}
                                     >
-                                        <Typography variant="body2" fontWeight={700} color="text.secondary" sx={{ mb: 1 }}>
-                                            Tổng tiền dự toán
-                                        </Typography>
-                                        <Typography
-                                            variant="h4"
-                                            fontWeight={800}
-                                            sx={{
-                                                color: '#d4a373',
-                                                letterSpacing: '0.5px',
-                                                fontSize: { md: '1.75rem', lg: '2.25rem' }
-                                            }}
-                                        >
-                                            {new Intl.NumberFormat('vi-VN').format(total)}
-                                        </Typography>
+                                        <Box sx={{ width: '100%', borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', p: 2, pb: 1.5 }}>
+                                            <Stack spacing={1.5}>
+                                                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                                    <Typography variant="body2" color="text.secondary">Tổng tiền hàng</Typography>
+                                                    <Typography fontWeight={600}>{fCurrency(subTotal)}</Typography>
+                                                </Stack>
+                                                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                                    <Typography variant="body2" color="text.secondary">Tiền VAT</Typography>
+                                                    <Typography color="warning.main" fontWeight={600}>
+                                                        {fCurrency(totalVat)}
+                                                    </Typography>
+                                                </Stack>
+                                                <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }} />
+                                                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                                    <Typography variant="subtitle1" fontWeight={700}>Tổng cộng</Typography>
+                                                    <Typography variant="subtitle1" color="primary.main" fontWeight={700}>
+                                                        {fCurrency(total)}
+                                                    </Typography>
+                                                </Stack>
+
+                                                <Box sx={{ mt: 1, pt: 1, borderTop: "1px dashed", borderColor: "divider" }}>
+                                                    <Typography variant="caption" fontWeight={600} gutterBottom display="block" color="text.secondary">Bằng chữ</Typography>
+                                                    <Typography fontSize={13} lineHeight={1.2}>
+                                                        {capitalizeFirstLetter(fRenderTextNumber(total))}
+                                                    </Typography>
+                                                </Box>
+                                            </Stack>
+                                        </Box>
                                     </Stack>
                                 </Box>
 

@@ -227,42 +227,23 @@ export function ContractItemsTable({
                 </Table>
             </TableContainer>
 
-            <Button
-                variant="outlined"
-                startIcon={<Iconify icon="gridicons:add" />}
-                onClick={handleAddProduct}
+            <Stack
+                direction="row"
+                pt={2}
+                sx={{
+                    borderTop: "1px solid",
+                    borderColor: "divider",
+                    mb: 2
+                }}
             >
-                Thêm sản phẩm
-            </Button>
-
-            <Paper variant="outlined" sx={{ p: 2, ml: "auto", width: 380, borderRadius: 2 }}>
-                <Stack spacing={1.5}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2">Tổng tiền hàng</Typography>
-                        <Typography fontWeight={600}>{fCurrency(subTotal)}</Typography>
-                    </Stack>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2">Tiền VAT</Typography>
-                        <Typography color="warning.main" fontWeight={600}>
-                            {fCurrency(totalVat)}
-                        </Typography>
-                    </Stack>
-                    <Divider />
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="h6" fontWeight={700}>Tổng cộng</Typography>
-                        <Typography variant="h6" color="primary.main" fontWeight={700}>
-                            {fCurrency(totalAmount)}
-                        </Typography>
-                    </Stack>
-
-                    <Box sx={{ mt: 2, pt: 1, borderTop: "1px dashed", borderColor: "divider" }}>
-                        <Typography fontWeight={600} gutterBottom>Bằng chữ</Typography>
-                        <Typography fontSize={15}>
-                            {capitalizeFirstLetter(fRenderTextNumber(totalAmount))}
-                        </Typography>
-                    </Box>
-                </Stack>
-            </Paper>
+                <Button
+                    variant="outlined"
+                    startIcon={<Iconify icon="gridicons:add" />}
+                    onClick={handleAddProduct}
+                >
+                    Thêm sản phẩm
+                </Button>
+            </Stack>
         </Stack>
     );
 }

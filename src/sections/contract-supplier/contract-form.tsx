@@ -1,6 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Button, Dialog, DialogContent, DialogTitle, Divider, MenuItem, Stack, Typography } from "@mui/material";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { fCurrency, fRenderTextNumber } from "src/utils/format-number";
+import { capitalizeFirstLetter } from "src/utils/format-string";
 import { Field, Form } from "src/components/hook-form";
 import { Iconify } from "src/components/iconify";
 import { IContractDetailDto, IProductFormEdit } from "src/types/contract";
@@ -22,7 +24,7 @@ import {
     IContractSupplyUpdateDto,
     IProductFromSup
 } from "src/types/contractSupplier";
-import { addMoreSupProducts, editProductSupplierForm, updateSupplierContract, useGetSupplierContract } from "src/actions/contractSupplier";
+import { addMoreSupProducts, editProductSupplierForm, updateSupplierContract, useGetSupplierContract, createSupplierContract } from "src/actions/contractSupplier";
 import { useGetSuppliers } from "src/actions/suppliers";
 import { ISuppliersItem } from "src/types/suppliers";
 import { editAllContractDetails } from "./helper/mapContractProducts";
@@ -74,6 +76,7 @@ export function ContractForm({
     const [contractProductDetail, setContractProductDetail] = useState<IContractSupplyForDetail[]>();
 
     const [selectedSupplier, setSelectedSupplier] = useState<ISuppliersItem | null>(null);
+    const [isEditingPayment, setIsEditingPayment] = useState(false);
 
     const defaultValues: ContractFormValues = {
         contractNo: generateContractNo('NCC'),
@@ -174,40 +177,62 @@ export function ContractForm({
                 }));
 
             if (!selectedContract?.id) {
-                toast.warning('Cập nhật dữ liệu thất bại!');
-                toast.warning('Không tìm thấy dữ liệu chi tiết của hợp đồng để cập nhật!');
-                return;
-            }
-
-            await updateSupplierContract(selectedContract?.id, updatePayload);
-
-            if (selectedContract) {
-                if (!productPayload) return;
-
-                for (const item of productPayload) {
-                    await editProductSupplierForm(item.rowId, item);
-                }
-
-                const newItems = products.filter(
-                    (item) => !originalItems.some((o) => o.productID === item.productID)
-                );
-
-                if (newItems.length > 0) {
-                    await addMoreSupProducts(selectedContract.id, newItems);
-                }
-                else {
-                    await editAllContractDetails(updateQuantityProduct, selectedContract.id);
-                }
+                const createPayload: IContractSupplyDto = {
+                    supplierId: data.supplierId,
+                    signatureDate: data.signatureDate,
+                    deliveryAddress: data.deliveryAddress || "",
+                    deliveryTime: data.deliveryTime,
+                    copiesNo: data.copiesNo,
+                    keptNo: data.keptNo,
+                    status: data.status,
+                    note: data.note ?? '',
+                    discount: data.discount,
+                    ContractNo: data.contractNo,
+                    customerContractNo: "",
+                    parentContractId: 0,
+                    products: data.products
+                        .filter((item) => item.product && item.product !== "")
+                        .map((item, i): IContractSupplyProductDto => ({
+                            productID: Number(item.product),
+                            quantity: item.qty ?? 0,
+                            imported: item.qty ?? 0,
+                            unit: item.unitName || "",
+                            price: item.price || 0
+                        })),
+                };
+                await createSupplierContract(createPayload);
             } else {
-                toast.warning("Đã có lỗi xảy ra trong quá trình cập nhật sản phẩm!");
-                return;
+                await updateSupplierContract(selectedContract?.id, updatePayload);
+
+                if (selectedContract) {
+                    if (!productPayload) return;
+
+                    for (const item of productPayload) {
+                        await editProductSupplierForm(item.rowId, item);
+                    }
+
+                    const newItems = products.filter(
+                        (item) => !originalItems.some((o) => o.productID === item.productID)
+                    );
+
+                    if (newItems.length > 0) {
+                        await addMoreSupProducts(selectedContract.id, newItems);
+                    }
+                    else {
+                        await editAllContractDetails(updateQuantityProduct, selectedContract.id);
+                    }
+                } else {
+                    toast.warning("Đã có lỗi xảy ra trong quá trình cập nhật sản phẩm!");
+                    return;
+                }
             }
 
-            toast.success("Dữ liệu hợp đồng đã được thay đổi!");
+
+            toast.success(selectedContract ? "Dữ liệu hợp đồng đã được thay đổi!" : "Tạo hợp đồng thành công!");
 
             listMutate();
 
-            if (selectedContract.id) {
+            if (selectedContract?.id) {
                 detailMutate();
             }
 
@@ -243,11 +268,26 @@ export function ContractForm({
     const calcAmount = (item: { qty?: number; price?: number; vat?: number }) => {
         const qty = item?.qty || 0;
         const price = item?.price || 0;
-        const vat = item?.vat || 0;
+        const rawVat = item?.vat || 0;
+        const vat = rawVat === 255 ? 0 : rawVat;
         return qty * price * (1 + vat / 100);
     };
 
-    const total = Math.round((products || []).reduce((acc, i) => acc + calcAmount(i), 0));
+    const subTotal = (products || []).reduce((acc, i) => {
+        const qty = Number(i?.qty) || 0;
+        const price = Number(i?.price) || 0;
+        return acc + qty * price;
+    }, 0);
+
+    const totalVat = (products || []).reduce((acc, i) => {
+        const qty = Number(i?.qty) || 0;
+        const price = Number(i?.price) || 0;
+        const rawVat = Number(i?.vat) || 0;
+        const vat = rawVat === 255 ? 0 : rawVat;
+        return acc + Math.round(qty * price * (vat / 100));
+    }, 0);
+
+    const total = Math.round(subTotal + totalVat);
 
     // useEffect(() => {
     //     if (total > 0) {
@@ -454,267 +494,244 @@ export function ContractForm({
         }
     }, [supplierId, suppliers]);
 
-    const renderActions = () => (
-        <Box display="flex" flexDirection="row" gap={2}>
-            <Button
-                variant="outlined"
-                color="inherit"
-                size="medium"
-                sx={{ flex: 1 }}
-                onClick={() => {
-                    onClose();
-                    reset(defaultValues);
-                }}
-                disabled={isSubmitting}
-            >
-                Hủy
-            </Button>
-            <Button
-                type="submit"
-                variant="contained"
-                size="medium"
-                sx={{ flex: 1, whiteSpace: 'nowrap', px: 3 }}
-                disabled={isCreatingSupplier}
-                loading={isSubmitting}
-            >
-                {selectedContract ? `Lưu hợp đồng` : 'Tạo hợp đồng'}
-            </Button>
-        </Box>
-    );
-
-    const renderDetails = () => (
-        <Stack direction={{ xs: "column", sm: "column", md: "column", lg: "row", xl: "row" }} height="100%" spacing={3} sx={{ mt: 1 }}>
-            {renderLeftColumn()}
-            <Divider
-                flexItem
-                orientation="vertical"
-                sx={{
-                    display: { xs: "none", md: "block" },
-                }}
-            />
-            <Divider
-                flexItem
-                orientation="horizontal"
-                sx={{
-                    display: { xs: "block", md: "none" },
-                }}
-            />
-            {/* Section Bảng sản phẩm */}
-            <ContractItemsTable
-                idContract={selectedContract?.id}
-                contractProductDetail={contractProductDetail}
-                methods={methods}
-                fields={fields}
-                append={append}
-                remove={remove}
-                setPaid={setTotalPaid}
-                listMutate={listMutate}
-                detailMutate={detailMutate}
-            />
-        </Stack>
-    );
-
-    const renderLeftColumn = () => (
-        <Stack width={{ xs: "100%", sm: "100%", md: "100%", lg: "30%" }} spacing={3}>
-            {/* Section Thông tin nhà cung cấp */}
-            <Box>
-                <Stack direction={{ xs: "column", md: "column", lg: "column", xl: "row" }} gap={2} justifyContent="space-between">
-                    <Typography variant="subtitle2">Thông tin nhà cung cấp</Typography>
-                    <Stack direction="row" justifyContent="space-between" gap={1} alignItems="center">
-                        <Field.Autocomplete
-                            name="supplierId"
-                            label={`Chọn nhà cung cấp`}
-                            options={suppliers}
-                            loading={suppliersLoading}
-                            getOptionLabel={(opt) =>
-                                opt?.companyName ?
-                                    opt.companyName : ''}
-                            isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
-                            onInputChange={(_, value) => setCustomerKeyword(value)}
-                            value={selectedSupplier}
-                            fullWidth
-                            onChange={(_, newValue) => {
-                                methods.setValue('supplierId', newValue?.id ?? 0, { shouldValidate: true });
-                                setCustomerKeyword(newValue?.companyName ?? '');
-                            }}
-                            noOptionsText="Không có dữ liệu"
-                            sx={{ flex: 1, minWidth: 200 }}
-                            renderOption={(props, option) => (
-                                <li {...props} key={option.id}>
-                                    {option.companyName ? option.companyName : ""}
-                                </li>
-                            )}
-                        />
-                        {/* <Stack direction="row">
-                            <Tooltip title="Tạo nhà cung cấp mới">
-                                <IconButton
-                                    color="inherit"
-                                    sx={{
-                                        '&:hover': {
-                                            backgroundColor: 'transparent'
-                                        },
-                                    }}
-                                    onClick={() => setIsCreatingSupplier(true)}
-                                >
-                                    <Iconify
-                                        icon="line-md:person-add"
-                                    />
-                                </IconButton>
-                            </Tooltip>
-                        </Stack> */}
-                    </Stack>
-                </Stack>
-                <Stack spacing={2} sx={{ mt: 2 }}>
-                    <Stack direction="row" gap={2}>
-                        <DetailItem label="Tên nhà cung cấp" value={selectedSupplier?.name ?? ""} />
-                        <DetailItem label="Tên công ty" value={selectedSupplier?.companyName ?? ""} />
-                    </Stack>
-                    <Stack direction="row" gap={2}>
-                        <DetailItem label="Email nhà cung cấp" value={selectedSupplier?.email ?? ""} />
-                        <DetailItem label="Số điện thoại" value={selectedSupplier?.phone ?? ""} />
-                    </Stack>
-                </Stack>
-            </Box>
-
-            {/* Section Thông tin hợp đồng */}
-            <Box>
-                <Typography variant="subtitle2">
-                    Thông tin hợp đồng
-                </Typography>
-                <Stack direction={{ xs: "column", md: "row" }} sx={{ mt: 2 }} spacing={2}>
-                    <Field.Text
-                        label="Số hợp đồng"
-                        name="contractNo"
-                        disabled={!!selectedContract}
-                    />
-                    <Field.Select label="Trạng thái" name="status">
-                        <MenuItem key={0} value={0}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 1 }}>
-                                <span>Hủy bỏ</span>
-                                <Iconify icon="fluent-color:dismiss-circle-16" />
-                            </Box>
-                        </MenuItem>
-                        <MenuItem key={1} value={1}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 1 }}>
-                                <span>Nháp</span>
-                                <Iconify icon="material-symbols:draft" />
-                            </Box>
-                        </MenuItem>
-                        <MenuItem key={2} value={2}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 1 }}>
-                                <span>Chờ duyệt</span>
-                                <Iconify icon="streamline-pixel:interface-essential-waiting-hourglass-loading" />
-                            </Box>
-                        </MenuItem>
-                        <MenuItem key={3} value={3}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 1 }}>
-                                <span>Đang thực hiện</span>
-                                <Iconify icon="line-md:uploading-loop" />
-                            </Box>
-                        </MenuItem>
-                        <MenuItem key={4} value={4}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: 1 }}>
-                                <span>Đã hoàn thành</span>
-                                <Iconify icon="fluent-color:checkmark-circle-16" />
-                            </Box>
-                        </MenuItem>
-                    </Field.Select>
-                </Stack>
-                <Stack direction={{ xs: "column", md: "row" }} sx={{ mt: 2 }} spacing={2}>
-                    <Field.DatePicker name="createDate" label="Ngày tạo" />
-                    <Field.DatePicker name="signatureDate" label="Ngày ký" />
-                </Stack>
-                <Stack direction={{ xs: "column", md: "row" }} sx={{ mt: 2 }} spacing={2}>
-                    <Field.Text
-                        size="small"
-                        label="Số bản sao"
-                        name="copiesNo"
-                        type="number"
-                        slotProps={{ inputLabel: { shrink: true } }}
-                    />
-                    <Field.Text
-                        size="small"
-                        label="Số bản lưu lại"
-                        name="keptNo"
-                        type="number"
-                        slotProps={{ inputLabel: { shrink: true } }}
-                    />
-                </Stack>
-                <Stack direction={{ xs: "column", md: "row" }} sx={{ mt: 2 }} spacing={2}>
-                    <Field.DatePicker name="deliveryTime" label="Ngày giao hàng" />
-                    <Field.Text name="deliveryAddress" label="Địa chỉ giao hàng" />
-                </Stack>
-                <Box mt={2}>
-                    <Typography variant="subtitle2">
-                        Thông tin thanh toán
-                    </Typography>
-                    <Stack direction="row" spacing={2} my={2}>
-                        <Field.VNCurrencyInput
-                            label="Lần 1"
-                            name="downPayment"
-                            sx={{ maxWidth: 150 }}
-                        />
-                        <Field.VNCurrencyInput
-                            label="Lần 2"
-                            name="nextPayment"
-                            sx={{ maxWidth: 150 }}
-                        />
-                        <Field.VNCurrencyInput
-                            label="Còn lại"
-                            name="lastPayment"
-                            sx={{
-                                maxWidth: 150,
-                                display: 'none'
-                            }}
-                            disabled
-                        />
-                    </Stack>
-                </Box>
-                <Field.Text
-                    name="note"
-                    label="Ghi chú"
-                    multiline
-                    fullWidth
-                    minRows={5}
-                    sx={{ pb: 2 }}
-                />
-            </Box>
-        </Stack>
-    );
-
     return (
         <Dialog
             open={open}
-            onClose={
-                () => {
-                    onClose();
-                    reset(defaultValues);
-                }
-            }
-            fullScreen>
-            <Form methods={methods} onSubmit={onSubmit} style={{ height: '100%' }}>
-                <DialogTitle
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        borderBottom: "1px solid",
-                        borderColor: "divider",
-                        py: 2,
-                        px: 3,
-                    }}
-                >
-                    {selectedContract ? `Chỉnh sửa - ${selectedContract.contractNo}` : 'Tạo hợp đồng'}
-                    {renderActions()}
+            onClose={() => { onClose(); reset(defaultValues); }}
+            fullScreen
+            PaperProps={{ sx: { bgcolor: '#fffff' } }}
+        >
+            <Form methods={methods} onSubmit={onSubmit} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <DialogTitle sx={{ bgcolor: '#fff', borderBottom: '1px solid #e2e8f0', py: 2, px: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant="h6" fontWeight={700} color="#111827">
+                        {selectedContract ? `CẬP NHẬT HỢP ĐỒNG NHÀ CUNG CẤP` : 'TẠO HỢP ĐỒNG NHÀ CUNG CẤP'}
+                    </Typography>
+                    <Stack direction="row" spacing={1.5}>
+                        <Button
+                            variant="outlined"
+                            color="inherit"
+                            onClick={() => { onClose(); reset(defaultValues); }}
+                            disabled={isSubmitting}
+                            sx={{ borderRadius: 1, px: 3 }}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={isCreatingSupplier}
+                            loading={isSubmitting}
+                            sx={{ bgcolor: "#00a76f", "&:hover": { bgcolor: "#008f5d" }, borderRadius: 1, px: 3 }}
+                        >
+                            {selectedContract ? 'Lưu hợp đồng' : 'Tạo hợp đồng'}
+                        </Button>
+                    </Stack>
                 </DialogTitle>
-                <DialogContent
-                    sx={{
-                        pb: 0,
-                        pt: '10px !important',
-                        overflowY: { xs: "auto", sm: "auto", md: "auto", lg: "auto", xl: "hidden" },
-                    }}
-                >
-                    {contractLoading ? renderSkeleton() : renderDetails()}
+
+                <DialogContent sx={{ p: 0, overflowX: 'hidden', overflowY: 'auto', flexGrow: 1 }}>
+                    <Box sx={{ zoom: 0.8, width: '100%', maxWidth: '100%', p: 3, boxSizing: 'border-box' }}>
+                        {contractLoading ? (
+                            renderSkeleton()
+                        ) : (
+                            <Stack spacing={3} sx={{ width: '100%' }}>
+
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        display: 'grid',
+                                        gridTemplateColumns: { xs: '1fr', md: '2.8fr 3.8fr 2.6fr 2.8fr' },
+                                        gap: 2.5,
+                                        bgcolor: '#fff',
+                                        p: 3,
+                                        borderRadius: 1,
+                                        boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+                                        boxSizing: 'border-box',
+                                        alignItems: 'start'
+                                    }}
+                                >
+                                    <Stack spacing={2} sx={{ pr: { md: 1.5 } }}>
+                                        <Stack direction="row" alignItems="flex-end" gap={1}>
+                                            <Field.Autocomplete
+                                                name="supplierId"
+                                                label="Chọn nhà cung cấp *"
+                                                options={suppliers}
+                                                loading={suppliersLoading}
+                                                getOptionLabel={(opt) => opt?.companyName || ''}
+                                                isOptionEqualToValue={(opt, val) => opt?.id === val?.id}
+                                                onInputChange={(_, value) => setCustomerKeyword(value)}
+                                                value={selectedSupplier}
+                                                onChange={(_, newValue: any) => {
+                                                    methods.setValue('supplierId', newValue?.id || 0, { shouldValidate: true });
+                                                    setSelectedSupplier(newValue);
+                                                    setCustomerKeyword(newValue?.companyName ?? '');
+                                                }}
+                                                size="small"
+                                                fullWidth
+                                            />
+                                        </Stack>
+
+                                        <Field.Text
+                                            name="phone"
+                                            label="Số điện thoại"
+                                            value={selectedSupplier?.phone || ""}
+                                            size="small"
+                                            fullWidth
+                                            disabled
+                                        />
+
+                                        <Field.Text
+                                            name="email"
+                                            label="Email nhà cung cấp"
+                                            value={selectedSupplier?.email || ""}
+                                            size="small"
+                                            fullWidth
+                                            disabled
+                                        />
+
+                                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, alignItems: 'end' }}>
+                                            <Field.Text label="Số bản sao" name="copiesNo" type="number" size="small" />
+                                            <Field.Text label="Số bản lưu" name="keptNo" type="number" size="small" />
+                                        </Box>
+                                    </Stack>
+
+                                    <Stack spacing={2} sx={{ px: { md: 1.5 } }}>
+                                        <Field.Text
+                                            name="companyName"
+                                            label="Tên công ty"
+                                            value={selectedSupplier?.companyName || ""}
+                                            size="small"
+                                            fullWidth
+                                            disabled
+                                        />
+
+                                        <Field.Text
+                                            name="name"
+                                            label="Tên nhà cung cấp"
+                                            value={selectedSupplier?.name || ""}
+                                            size="small"
+                                            fullWidth
+                                            disabled
+                                        />
+
+                                        <Field.Text name="deliveryAddress" label="Địa chỉ giao hàng" size="small" fullWidth />
+
+                                        <Stack spacing={1} sx={{ mt: 1 }}>
+                                            <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.7rem' }}>
+                                                Thông tin thanh toán
+                                            </Typography>
+
+                                            {(() => {
+                                                if (total === 0) return null;
+
+                                                return (
+                                                    <Box
+                                                        sx={{
+                                                            display: 'grid',
+                                                            gridTemplateColumns: 'repeat(2, 1fr)',
+                                                            gap: 1
+                                                        }}
+                                                    >
+                                                        <Field.VNCurrencyInput
+                                                            label="Lần 1 (Tạm ứng)"
+                                                            name="downPayment"
+                                                            onFocus={() => setIsEditingPayment(true)}
+                                                            onBlur={() => setIsEditingPayment(false)}
+                                                        />
+                                                        <Field.VNCurrencyInput
+                                                            label="Lần 2 (Còn lại)"
+                                                            name="nextPayment"
+                                                            disabled
+                                                        />
+                                                    </Box>
+                                                );
+                                            })()}
+                                        </Stack>
+                                    </Stack>
+
+                                    <Stack spacing={2} sx={{ px: { md: 1.5 } }}>
+                                        <Field.Text
+                                            label="Số hợp đồng"
+                                            name="contractNo"
+                                            disabled={!!selectedContract}
+                                            size="small"
+                                            fullWidth
+                                        />
+
+                                        <Field.DatePicker name="createDate" label="Ngày tạo" slotProps={{ textField: { size: 'small', fullWidth: true } }} />
+                                        <Field.DatePicker name="signatureDate" label="Ngày ký" slotProps={{ textField: { size: 'small', fullWidth: true } }} />
+                                        <Field.DatePicker name="deliveryTime" label="Ngày giao hàng" slotProps={{ textField: { size: 'small', fullWidth: true } }} />
+
+                                        <Field.Select label="Trạng thái" name="status" size="small" fullWidth>
+                                            <MenuItem value={1}>Nháp</MenuItem>
+                                            <MenuItem value={2}>Chờ duyệt</MenuItem>
+                                            <MenuItem value={3}>Đang thực hiện</MenuItem>
+                                            <MenuItem value={4}>Đã hoàn thành</MenuItem>
+                                            <MenuItem value={0}>Hủy bỏ</MenuItem>
+                                        </Field.Select>
+                                    </Stack>
+
+                                    <Stack
+                                        justifyContent="center"
+                                        alignItems="center"
+                                        sx={{
+                                            height: '100%',
+                                            pl: { md: 1.5 },
+                                        }}
+                                    >
+                                        <Box sx={{ width: '100%', borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', p: 2, pb: 1.5 }}>
+                                            <Stack spacing={1.5}>
+                                                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                                    <Typography variant="body2" color="text.secondary">Tổng tiền hàng</Typography>
+                                                    <Typography fontWeight={600}>{fCurrency(subTotal)}</Typography>
+                                                </Stack>
+                                                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                                    <Typography variant="body2" color="text.secondary">Tiền VAT</Typography>
+                                                    <Typography color="warning.main" fontWeight={600}>
+                                                        {fCurrency(totalVat)}
+                                                    </Typography>
+                                                </Stack>
+                                                <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }} />
+                                                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                                    <Typography variant="subtitle1" fontWeight={700}>Tổng cộng</Typography>
+                                                    <Typography variant="subtitle1" color="primary.main" fontWeight={700}>
+                                                        {fCurrency(total)}
+                                                    </Typography>
+                                                </Stack>
+
+                                                <Box sx={{ mt: 1, pt: 1, borderTop: "1px dashed", borderColor: "divider" }}>
+                                                    <Typography variant="caption" fontWeight={600} gutterBottom display="block" color="text.secondary">Bằng chữ</Typography>
+                                                    <Typography fontSize={13} lineHeight={1.2}>
+                                                        {capitalizeFirstLetter(fRenderTextNumber(total))}
+                                                    </Typography>
+                                                </Box>
+                                            </Stack>
+                                        </Box>
+                                    </Stack>
+                                </Box>
+                                
+                                <Field.Text
+                                    name="note"
+                                    label="Ghi chú"
+                                    multiline
+                                    fullWidth
+                                    minRows={2}
+                                />
+
+                                <ContractItemsTable
+                                    idContract={selectedContract?.id}
+                                    contractProductDetail={contractProductDetail}
+                                    methods={methods}
+                                    fields={fields}
+                                    append={append}
+                                    remove={remove}
+                                    setPaid={setTotalPaid}
+                                    listMutate={listMutate}
+                                    detailMutate={detailMutate}
+                                />
+
+                            </Stack>
+                        )}
+                    </Box>
                 </DialogContent>
             </Form>
         </Dialog>
