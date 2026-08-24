@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Button, Box } from "@mui/material";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { useBoolean } from "minimal-shared/hooks";
 import { ChangeEvent, useEffect, useState } from "react";
@@ -163,7 +163,15 @@ export function ReceiptMainView() {
             allowedRoles={['PHIEUTHU.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent 
+                sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    zoom: "80%",
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading="Nghiệp vụ khách hàng"
                     links={[
@@ -186,7 +194,24 @@ export function ReceiptMainView() {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs tabs={CUSTOMER_SERVICE_TAB_DATA} activePath={location.pathname} />
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <ServiceNavTabs tabs={CUSTOMER_SERVICE_TAB_DATA} activePath={location.pathname} />
+                    <ReceiptFilterBar
+                        onFilterChange={handleFilterChange}
+                        onSearching={setSearchText}
+                        onReset={handleReset}
+                    />
+                </Box>
+
                 <UseGridTableList
                     dataFiltered={tableData}
                     loading={contractReceiptLoading}
@@ -210,13 +235,6 @@ export function ReceiptMainView() {
                     searchText={searchText}
                     onSearchChange={setSearchText}
                     disableDefaultFilter
-                    additionalFilter={
-                        <ReceiptFilterBar
-                            onFilterChange={handleFilterChange}
-                            onSearching={setSearchText}
-                            onReset={handleReset}
-                        />
-                    }
                 />
                 {renderForm()}
                 {renderConfirmDeleteRow()}

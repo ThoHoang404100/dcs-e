@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Button, Box } from "@mui/material";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { useBoolean } from "minimal-shared/hooks";
 import { ChangeEvent, useEffect, useState } from "react";
@@ -131,7 +131,15 @@ export function SpendMainView({ contractType }: { contractType: string }) {
             allowedRoles={['PHIEUCHI.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent 
+                sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    zoom: "80%",
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading={titleBreadcrumb}
                     links={[
@@ -154,13 +162,31 @@ export function SpendMainView({ contractType }: { contractType: string }) {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs
-                    tabs={
-                        contractType === 'Customer' ?
-                            CUSTOMER_SERVICE_TAB_DATA :
-                            SUPPLIER_SERVICE_TAB_DATA}
-                    activePath={location.pathname}
-                />
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <ServiceNavTabs
+                        tabs={
+                            contractType === 'Customer' ?
+                                CUSTOMER_SERVICE_TAB_DATA :
+                                SUPPLIER_SERVICE_TAB_DATA}
+                        activePath={location.pathname}
+                    />
+                    <SpendFilterBar
+                        onFilterChange={handleFilterChange}
+                        onSearching={setSearchText}
+                        onReset={handleReset}
+                        contractType={contractType}
+                    />
+                </Box>
+
                 <UseGridTableList
                     dataFiltered={tableData}
                     loading={contractReceiptLoading}
@@ -184,14 +210,6 @@ export function SpendMainView({ contractType }: { contractType: string }) {
                     searchText={searchText}
                     onSearchChange={setSearchText}
                     disableDefaultFilter
-                    additionalFilter={
-                        <SpendFilterBar
-                            onFilterChange={handleFilterChange}
-                            onSearching={setSearchText}
-                            onReset={handleReset}
-                            contractType={contractType}
-                        />
-                    }
                 />
                 <SpendNewEditForm
                     open={openCrudForm.value}

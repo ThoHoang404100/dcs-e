@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Button, Box } from "@mui/material";
 import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
 import { Iconify } from "src/components/iconify";
 import { DashboardContent } from "src/layouts/dashboard";
@@ -7,15 +7,23 @@ import { IQuotationItem } from "src/types/quotation";
 import { CONFIG } from "src/global-config";
 import { RoleBasedGuard } from "src/auth/guard";
 import { useCheckPermission } from "src/auth/hooks/use-check-permission";
-import { QuotationCardList } from "../supplier/quotation-card-list";
+import { QuotationTableList } from "../QuotationTableList";
 import { QuotationForm } from "../supplier/quotation-form";
 import { QuotationDetails } from "../supplier/quotation-details";
 import { useLocation } from "react-router";
 import { SUPPLIER_SERVICE_TAB_DATA } from "src/components/tabs/components/service-nav-tabs-data";
 import ServiceNavTabs from "src/components/tabs/service-nav-tabs";
+import { FilterValues } from "src/types/filter-values";
+import { QuotationFilterBar } from "../supplier/quotation-filter";
 
 export function OrderSupplierMainView() {
     const location = useLocation();
+    const [filters, setFilters] = useState<FilterValues>({
+        fromDate: "",
+        toDate: "",
+    });
+
+    const [searchText, setSearchText] = useState("");
     const [openForm, setOpenForm] = useState(false);
     const [openDetail, setOpenDetail] = useState(false);
     const [selectedQuotation, setSelectedQuotation] = useState<IQuotationItem | null>(null);
@@ -49,7 +57,15 @@ export function OrderSupplierMainView() {
             allowedRoles={['BAOGIA.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent
+                sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    zoom: "80%",
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading="Nghiệp vụ nhà cung cấp"
                     links={[
@@ -73,16 +89,42 @@ export function OrderSupplierMainView() {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs tabs={SUPPLIER_SERVICE_TAB_DATA} activePath={location.pathname} />
-                <QuotationCardList
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <ServiceNavTabs tabs={SUPPLIER_SERVICE_TAB_DATA} activePath={location.pathname} />
+
+                    <QuotationFilterBar
+                        onFilterChange={setFilters}
+                        onSearching={setSearchText}
+                        onReset={() =>
+                            setFilters({
+                                fromDate: "",
+                                toDate: "",
+                            })
+                        }
+                    />
+                </Box>
+
+                <QuotationTableList
                     onViewDetails={handleViewDetails}
                     onEditing={handleEditing}
                     page={page}
                     setPage={setPage}
                     rowsPerPage={rowsPerPage}
                     setRowsPerPage={setRowsPerPage}
-                    location={location}
+                    filters={filters}
+                    searchText={searchText}
+                    type="Order"
                 />
+
                 <QuotationForm
                     selectedQuotation={selectedQuotation}
                     openForm={openForm}

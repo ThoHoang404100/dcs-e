@@ -1,4 +1,4 @@
-import { Button } from "@mui/material"
+import { Button, Box } from "@mui/material"
 import { GridRowSelectionModel } from "@mui/x-data-grid"
 import { useBoolean } from "minimal-shared/hooks"
 import { ChangeEvent, useEffect, useState } from "react"
@@ -155,7 +155,15 @@ export function SuppliersListView() {
             allowedRoles={['NHACUNGCAP.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent 
+                sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    zoom: "80%",
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading="Khách hàng"
                     links={[
@@ -178,7 +186,6 @@ export function SuppliersListView() {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs tabs={CUSTOMER_TAB_DATA} activePath={location.pathname} />
                 <UseGridTableList
                     dataFiltered={dataFiltered}
                     loading={suppliersLoading}
@@ -201,13 +208,25 @@ export function SuppliersListView() {
                     searchText={searchText}
                     onSearchChange={setSearchText}
                     openBin={openBin}
-                    additionDefaultFilter={<SupplierFilter
-                        allRecord={allRecord}
-                        filterState={isBusiness}
-                        onChangeState={setIsBusiness}
-                        businessRecord={businessRecord}
-                        unBusinessRecord={unBusinessRecord}
-                    />}
+                    additionDefaultFilter={
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 2,
+                                flexWrap: "wrap",
+                            }}
+                        >
+                            <ServiceNavTabs tabs={CUSTOMER_TAB_DATA} activePath={location.pathname} />
+                            <SupplierFilter
+                                allRecord={allRecord}
+                                filterState={isBusiness}
+                                onChangeState={setIsBusiness}
+                                businessRecord={businessRecord}
+                                unBusinessRecord={unBusinessRecord}
+                            />
+                        </Box>
+                    }
                 />
                 {renderCRUDForm()}
                 {renderDetails()}

@@ -60,6 +60,7 @@ type Props = {
 
   filters: FilterValues;
   searchText: string;
+  type?: string;
 };
 
 type ResizableTableCellProps = {
@@ -139,6 +140,7 @@ export function QuotationTableList({
   setRowsPerPage,
   filters,
   searchText,
+  type,
 }: Props) {
 
   const [selectedRow, setSelectedRow] = useState<IQuotationItem | null>(null);
@@ -158,11 +160,12 @@ export function QuotationTableList({
     pageNumber: page + 1,
     pageSize: rowsPerPage,
     key: searchText.trim(),
-    fromDate: '',
-    toDate: '',
+    fromDate: filters.fromDate,
+    toDate: filters.toDate,
     Filter: filters.customer,
     Month: filters.month,
     Status: filters.status,
+    type: type,
   });
 
   const confirmDelRowDialog = useBoolean();
@@ -299,7 +302,7 @@ export function QuotationTableList({
                 {/* <ResizableTableCell width={columnWidths.index} onResize={(w) => setColumnWidths(p => ({ ...p, index: w }))}>#</ResizableTableCell> */}
                 <ResizableTableCell width={columnWidths.date} onResize={(w) => setColumnWidths(p => ({ ...p, date: w }))}>Ngày báo giá</ResizableTableCell>
                 <ResizableTableCell width={columnWidths.code} onResize={(w) => setColumnWidths(p => ({ ...p, code: w }))}>Mã báo giá</ResizableTableCell>
-                <ResizableTableCell width={columnWidths.customer} onResize={(w) => setColumnWidths(p => ({ ...p, customer: w }))}>Tên khách hàng</ResizableTableCell>
+                <ResizableTableCell width={columnWidths.customer} onResize={(w) => setColumnWidths(p => ({ ...p, customer: w }))}>{type === 'Order' ? 'Tên nhà cung cấp' : 'Tên khách hàng'}</ResizableTableCell>
                 <ResizableTableCell width={columnWidths.phone} onResize={(w) => setColumnWidths(p => ({ ...p, phone: w }))}>SĐT</ResizableTableCell>
                 <ResizableTableCell width={columnWidths.expiry} onResize={(w) => setColumnWidths(p => ({ ...p, expiry: w }))}>Ngày quá hạn</ResizableTableCell>
                 <ResizableTableCell width={columnWidths.total} align="right" onResize={(w) => setColumnWidths(p => ({ ...p, total: w }))}>Tổng tiền</ResizableTableCell>
@@ -324,11 +327,11 @@ export function QuotationTableList({
                       title={row.nickName ? `Tên gợi nhớ: ${row.nickName}` : ""}
                     >
                       <span style={{ cursor: "pointer" }}>
-                        {row.customerName}
+                        {type === 'Order' ? row.supplierName : row.customerName}
                       </span>
                     </Tooltip>
                   </TableCell>
-                  <TableCell>{row.customerPhone}</TableCell>
+                  <TableCell>{type === 'Order' ? row.supplierPhone : row.customerPhone}</TableCell>
                   <TableCell>{safeDate(row.expiryDate)}</TableCell>
                   <TableCell align="right">{(row.totalAmount ?? 0).toLocaleString()} đ</TableCell>
                   <TableCell align="center">

@@ -14,7 +14,7 @@ import { deleteOne } from "src/actions/delete";
 import { endpoints } from "src/lib/axios";
 import { toast } from "sonner";
 import { ConfirmDialog } from "src/components/custom-dialog";
-import { Button } from "@mui/material";
+import { Button, Box } from "@mui/material";
 import { useCheckPermission } from "src/auth/hooks/use-check-permission";
 import { RoleBasedGuard } from "src/auth/guard";
 import { useLocation } from "react-router";
@@ -158,7 +158,15 @@ export function WarehouseExportMainView() {
             allowedRoles={['PHIEUXUATKHO.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent 
+                sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    zoom: "80%",
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading="Nghiệp vụ khách hàng"
                     links={[
@@ -181,7 +189,24 @@ export function WarehouseExportMainView() {
                     }
                 />
 
-                <ServiceNavTabs tabs={CUSTOMER_SERVICE_TAB_DATA} activePath={location.pathname} />
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <ServiceNavTabs tabs={CUSTOMER_SERVICE_TAB_DATA} activePath={location.pathname} />
+                    <WarehouseExportFilterBar
+                        onFilterChange={handleFilterChange}
+                        onSearching={setSearchText}
+                        onReset={handleReset}
+                    />
+                </Box>
+
                 <UseGridTableList
                     dataFiltered={tableData}
                     loading={contractWarehouseExportsLoading}
@@ -205,13 +230,6 @@ export function WarehouseExportMainView() {
                     searchText={searchText}
                     onSearchChange={setSearchText}
                     disableDefaultFilter
-                    additionalFilter={
-                        <WarehouseExportFilterBar
-                            onFilterChange={handleFilterChange}
-                            onSearching={setSearchText}
-                            onReset={handleReset}
-                        />
-                    }
                 />
                 {renderForm()}
                 {renderConfirmDeleteRow()}
