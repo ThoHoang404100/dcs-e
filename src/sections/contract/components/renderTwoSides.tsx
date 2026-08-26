@@ -337,7 +337,8 @@ export const renderTwoSides = ({
                     style={{
                         fontFamily: 'Niramit-Medium',
                         fontSize: 13,
-                        textIndent: 20
+                        textIndent: 20,
+                        textAlign: 'justify'
                     }}
                 >
                     Hai Bên thống nhất ký kết Hợp đồng cung cấp thiết bị với các điều khoản sau đây:

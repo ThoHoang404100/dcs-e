@@ -39,7 +39,8 @@ export const renderRuleTwo = ({ downPayment, nextPayment, lastPayment, signature
                     style={{
                         fontSize: 13,
                         fontFamily: "Niramit",
-                        textIndent: 22
+                        textIndent: 22,
+                        textAlign: 'justify'
                     }}
                 >
                     {`Điều kiện kỹ thuật, các thông số kỹ thuật của hàng hóa đáp ứng theo đúng các thỏa thuận giữa hai bên.`}
@@ -89,7 +90,7 @@ export const renderRuleTwo = ({ downPayment, nextPayment, lastPayment, signature
             </View>
             <RenderRuleNameChild sentence={`2.2 Thông tin và Phương thức thanh toán:`} />
             <View style={{ paddingLeft: 10 }}>
-                <Text style={{ fontSize: 13, fontFamily: "Niramit", lineHeight: 1.6 }}>
+                <Text style={{ fontSize: 13, fontFamily: "Niramit", lineHeight: 1.6, textAlign: 'justify' }}>
                     {phaseTexts.map((item, index) => {
                         if (lastPayment === 0 && index === 3) return;
                         return (
