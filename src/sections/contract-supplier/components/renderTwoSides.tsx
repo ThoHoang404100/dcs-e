@@ -69,8 +69,7 @@ export const renderTwoSides = ({
                 <View
                     style={{
                         display: 'flex',
-                        flexDirection: 'row',
-                        flexWrap: 'wrap',
+                        flexDirection: 'column',
                         marginBottom: 4,
                     }}
                 >
@@ -81,9 +80,9 @@ export const renderTwoSides = ({
                         style={{
                             fontSize: 13,
                             fontFamily: 'Niramit-Bold',
-                            marginLeft: 10,
-                            flex: 1,
-                            flexShrink: 1,
+                            marginLeft: 20,
+                            marginTop: 4,
+                            textTransform: 'uppercase'
                         }}
                     >
                         {companyName ? companyName : customerName}
@@ -171,7 +170,7 @@ export const renderTwoSides = ({
                             <View style={{ flex: 1 }}>
                                 <Text
                                     style={{
-                                        fontSize: 13,
+                                        fontSize: (value && typeof value === 'string' && value.length > 70) ? 10.5 : (value && typeof value === 'string' && value.length > 55) ? 11.5 : 13,
                                         fontFamily: 'Niramit',
                                     }}
                                 >
@@ -194,8 +193,7 @@ export const renderTwoSides = ({
                 <View
                     style={{
                         display: 'flex',
-                        flexDirection: 'row',
-                        flexWrap: 'wrap',
+                        flexDirection: 'column',
                         marginBottom: 4,
                     }}
                 >
@@ -212,9 +210,9 @@ export const renderTwoSides = ({
                         style={{
                             fontSize: 13,
                             fontFamily: 'Niramit-Bold',
-                            marginLeft: 10,
-                            flex: 1,
-                            flexShrink: 1,
+                            marginLeft: 20,
+                            marginTop: 4,
+                            textTransform: 'uppercase'
                         }}
                     >
                         {companyInfoData?.name || "CÔNG TY TNHH GIẢI PHÁP DCS"}
@@ -314,7 +312,7 @@ export const renderTwoSides = ({
                             <View style={{ flex: 1 }}>
                                 <Text
                                     style={{
-                                        fontSize: 13,
+                                        fontSize: (value && typeof value === 'string' && value.length > 70) ? 10.5 : (value && typeof value === 'string' && value.length > 55) ? 11.5 : 13,
                                         fontFamily: 'Niramit',
                                     }}
                                 >

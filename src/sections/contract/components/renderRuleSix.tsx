@@ -523,20 +523,19 @@ export const renderRules = ({
                         flexShrink: 0,
                         flexDirection: 'column',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        height: 150,
+                        justifyContent: 'flex-start',
                     }}
                 >
-                    <View style={{ alignItems: 'center' }}>
-                        <Text
-                            style={{
-                                fontFamily: 'Niramit-Bold',
-                                fontSize: 13,
-                                textTransform: 'uppercase',
-                            }}
-                        >
-                            ĐẠI DIỆN BÊN A
-                        </Text>
+                    <Text
+                        style={{
+                            fontFamily: 'Niramit-Bold',
+                            fontSize: 13,
+                            textTransform: 'uppercase',
+                        }}
+                    >
+                        ĐẠI DIỆN BÊN A
+                    </Text>
+                    <View style={{ height: 60, width: '100%', justifyContent: 'center', alignItems: 'center', marginTop: 4, marginBottom: 4 }}>
                         <Text
                             style={{
                                 fontFamily: 'Niramit-Bold',
@@ -546,17 +545,17 @@ export const renderRules = ({
                         >
                             {sideA[0]}
                         </Text>
-                        <Text
-                            style={{
-                                fontFamily: 'Niramit-SemiBold',
-                                fontSize: 13,
-                                textAlign: 'center',
-                                textTransform: 'uppercase',
-                            }}
-                        >
-                            {sideA[1]}
-                        </Text>
                     </View>
+                    <Text
+                        style={{
+                            fontFamily: 'Niramit-SemiBold',
+                            fontSize: 13,
+                            textAlign: 'center',
+                            textTransform: 'uppercase',
+                        }}
+                    >
+                        {sideA[1]}
+                    </Text>
 
                     <Text
                         style={{
@@ -577,20 +576,19 @@ export const renderRules = ({
                         flexShrink: 0,
                         flexDirection: 'column',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        height: 150,
+                        justifyContent: 'flex-start',
                     }}
                 >
-                    <View style={{ alignItems: 'center' }}>
-                        <Text
-                            style={{
-                                fontFamily: 'Niramit-Bold',
-                                fontSize: 13,
-                                textTransform: 'upperfirst',
-                            }}
-                        >
-                            ĐẠI DIỆN BÊN B
-                        </Text>
+                    <Text
+                        style={{
+                            fontFamily: 'Niramit-Bold',
+                            fontSize: 13,
+                            textTransform: 'upperfirst',
+                        }}
+                    >
+                        ĐẠI DIỆN BÊN B
+                    </Text>
+                    <View style={{ height: 60, width: '100%', justifyContent: 'center', alignItems: 'center', marginTop: 4, marginBottom: 4 }}>
                         <Text
                             style={{
                                 fontFamily: 'Niramit-Bold',
@@ -600,23 +598,22 @@ export const renderRules = ({
                         >
                             {sideB[0]}
                         </Text>
-                        <Text
-                            style={{
-                                fontFamily: 'Niramit-SemiBold',
-                                fontSize: 13,
-                                textAlign: 'center',
-                            }}
-                        >
-                            {sideB[1]}
-                        </Text>
                     </View>
+                    <Text
+                        style={{
+                            fontFamily: 'Niramit-SemiBold',
+                            fontSize: 13,
+                            textAlign: 'center',
+                        }}
+                    >
+                        {sideB[1]}
+                    </Text>
 
                     <Text
                         style={{
                             fontFamily: 'Niramit',
                             fontSize: 13,
                             marginTop: 60,
-                            // color: 'rgba(238, 0, 51, 1)',
                             textAlign: 'center',
                         }}
                     >
