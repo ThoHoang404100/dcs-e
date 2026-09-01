@@ -124,7 +124,15 @@ export function UnitListView() {
             allowedRoles={['DONVITINH.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent 
+                sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    zoom: "80%",
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading="Sản phẩm"
                     links={[
@@ -147,7 +155,6 @@ export function UnitListView() {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs tabs={PRODUCT_TAB_DATA} activePath={location.pathname} />
                 <UseGridTableList
                     dataFiltered={dataFiltered}
                     loading={unitsLoading}
@@ -161,6 +168,7 @@ export function UnitListView() {
                     searchText={searchText}
                     onSearchChange={setSearchText}
                     openBin={openBin}
+                    additionDefaultFilter={<ServiceNavTabs tabs={PRODUCT_TAB_DATA} activePath={location.pathname} />}
                 />
                 {renderCRUDForm()}
                 {renderConfirmDeleteRow()}

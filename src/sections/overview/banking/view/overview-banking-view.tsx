@@ -135,7 +135,15 @@ export function OverviewBankingView() {
       allowedRoles={['TAIKHOAN.VIEW']}
       sx={{ py: 10 }}
     >
-      <DashboardContent maxWidth="xl">
+      <DashboardContent 
+          sx={{ 
+              flexGrow: 1, 
+              display: 'flex', 
+              flexDirection: 'column',
+              zoom: "80%",
+              transformOrigin: "top left",
+          }}
+      >
         <CustomBreadcrumbs
           heading="Tài khoản ngân hàng"
           links={[

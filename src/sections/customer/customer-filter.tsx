@@ -1,4 +1,4 @@
-import { Checkbox, FormControl, FormControlLabel, FormGroup, Radio, RadioGroup, Stack } from "@mui/material";
+import { Checkbox, FormControl, FormControlLabel, FormGroup, Radio, RadioGroup, Stack, Box } from "@mui/material";
 import { ChangeEvent } from "react";
 
 type customerFilterProps = {
@@ -49,7 +49,7 @@ export function CustomerFilter({
     };
 
     return (
-        <>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
             <Stack direction="row" spacing={3} border="1px solid #ddd" borderRadius={1} pl={1}>
                 <FormControl>
                     <RadioGroup
@@ -87,6 +87,6 @@ export function CustomerFilter({
                     }
                 />
             </FormGroup>
-        </>
+        </Box>
     );
 }

@@ -6,7 +6,8 @@ export function RenderRuleNameChild({ sentence }: { sentence: string }) {
             style={{
                 fontFamily: 'Niramit-SemiBold',
                 fontSize: 13,
-                textIndent: 22
+                textIndent: 22,
+                textAlign: 'justify'
             }}
         >
             {sentence}

@@ -180,6 +180,8 @@ Font.register({
     ],
 });
 
+Font.registerHyphenationCallback(word => [word]);
+
 type ContractPdfDocumentProps = {
     contract?: IContractItem;
     currentContract?: IContractData;

@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Button, Box } from "@mui/material";
 import { RoleBasedGuard } from "src/auth/guard";
 import { ConfirmDialog } from "src/components/custom-dialog";
 import { UseGridTableList } from "src/components/data-grid-table/data-grid-table";
@@ -166,7 +166,15 @@ export function SpendMainView() {
             allowedRoles={['PHIEUCHI.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent 
+                sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    zoom: "80%",
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading="Phiếu chi"
                     links={[
@@ -189,7 +197,6 @@ export function SpendMainView() {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs tabs={INTERNAL_TAB_DATA} activePath={location.pathname} />
                 <UseGridTableList
                     dataFiltered={tableData}
                     loading={receiptOrSpendDtLoading}
@@ -214,10 +221,14 @@ export function SpendMainView() {
                     onSearchChange={setSearchText}
                     disableDefaultFilter
                     additionalFilter={
-                        <SpendFilterBar
-                            onFilterChange={handleFilterChange}
-                            onSearching={setSearchText}
-                            onReset={handleReset} />}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                            <ServiceNavTabs tabs={INTERNAL_TAB_DATA} activePath={location.pathname} />
+                            <SpendFilterBar
+                                onFilterChange={handleFilterChange}
+                                onSearching={setSearchText}
+                                onReset={handleReset} />
+                        </Box>
+                    }
                 />
                 {renderForm()}
                 {renderConfirmDeleteRow()}

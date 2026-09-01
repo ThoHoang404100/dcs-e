@@ -329,7 +329,8 @@ export const renderRules = ({
                         style={{
                             fontSize: 13,
                             fontFamily: "Niramit",
-                            textIndent: 22
+                            textIndent: 22,
+                            textAlign: 'justify'
                         }}
                     >
                         {`Điều kiện kỹ thuật, các thông số kỹ thuật của hàng hóa đáp ứng theo đúng các thỏa thuận giữa hai bên.`}
@@ -379,7 +380,7 @@ export const renderRules = ({
                 </View>
                 <RenderRuleNameChild sentence={`2.2 Thông tin và Phương thức thanh toán:`} />
                 <View style={{ paddingLeft: 10 }}>
-                    <Text style={{ fontSize: 13, fontFamily: "Niramit", lineHeight: 1.6 }}>
+                    <Text style={{ fontSize: 13, fontFamily: "Niramit", lineHeight: 1.6, textAlign: 'justify' }}>
                         {phaseTexts.map((item, index) => {
                             if (lastPayment === 0 && index === 3) return;
                             return (
@@ -408,7 +409,7 @@ export const renderRules = ({
                     }}
                 >
                     <View style={{ paddingLeft: 10 }}>
-                        <Text style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 15 }}>
+                        <Text style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 15, textAlign: 'justify' }}>
                             - Mọi chi phí phát sinh liên quan đến việc chuyển khoản (nếu có) do Bên A chịu trách nhiệm thanh toán.
                         </Text>
                     </View>
@@ -437,7 +438,7 @@ export const renderRules = ({
                     </View>
                     <View style={{ flexDirection: 'column', gap: 5 }}>
                         {ruleThree.map((item, index) => (
-                            <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20 }}>
+                            <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20, textAlign: 'justify' }}>
                                 {item}
                             </Text>
                         ))}
@@ -466,7 +467,7 @@ export const renderRules = ({
                         gap: 5
                     }}>
                         {ruleFour.map((item, index) => (
-                            <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20 }}>
+                            <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20, textAlign: 'justify' }}>
                                 {item}
                             </Text>
                         ))}
@@ -487,7 +488,7 @@ export const renderRules = ({
                     gap: 5
                 }}>
                     {ruleFive.map((item, index) => (
-                        <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20 }}>
+                        <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20, textAlign: 'justify' }}>
                             {item}
                         </Text>
                     ))}
@@ -501,7 +502,7 @@ export const renderRules = ({
             }}
             >
                 {ruleSix.map((item, index) => (
-                    <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20 }}>
+                    <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20, textAlign: 'justify' }}>
                         {item}
                     </Text>
                 ))}

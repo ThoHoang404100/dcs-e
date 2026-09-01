@@ -12,7 +12,7 @@ import { DashboardContent } from "src/layouts/dashboard";
 import { IContractWarehouseImportItem } from "src/types/warehouse-import";
 import { WarehouseImportNewEditForm } from "../warehouse-import-new-dit-form";
 import { ConfirmDialog } from "src/components/custom-dialog";
-import { Button } from "@mui/material";
+import { Button, Box } from "@mui/material";
 import { deleteOne } from "src/actions/delete";
 import { toast } from "sonner";
 import { endpoints } from "src/lib/axios";
@@ -124,7 +124,15 @@ export function WarehouseImportMainView() {
             allowedRoles={['PHIEUNHAPKHO.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent 
+                sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    zoom: "80%",
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading="Nghiệp vụ nhà cung cấp"
                     links={[
@@ -147,7 +155,24 @@ export function WarehouseImportMainView() {
                     }
                 />
 
-                <ServiceNavTabs tabs={SUPPLIER_SERVICE_TAB_DATA} activePath={location.pathname} />
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 2,
+                        mb: 2,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <ServiceNavTabs tabs={SUPPLIER_SERVICE_TAB_DATA} activePath={location.pathname} />
+                    <WarehouseImportFilterBar
+                        onFilterChange={handleFilterChange}
+                        onSearching={setSearchText}
+                        onReset={handleReset}
+                    />
+                </Box>
+
                 <UseGridTableList
                     dataFiltered={tableData}
                     loading={contractWarehouseImportsLoading}
@@ -171,13 +196,6 @@ export function WarehouseImportMainView() {
                     searchText={searchText}
                     onSearchChange={setSearchText}
                     disableDefaultFilter
-                    additionalFilter={
-                        <WarehouseImportFilterBar
-                            onFilterChange={handleFilterChange}
-                            onSearching={setSearchText}
-                            onReset={handleReset}
-                        />
-                    }
                 />
                 <WarehouseImportNewEditForm
                     open={openCrudForm.value}

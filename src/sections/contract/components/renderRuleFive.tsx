@@ -24,7 +24,7 @@ export const renderRuleFive = () => {
                 gap: 5
             }}>
                 {ruleFive.map((item, index) => (
-                    <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20 }}>
+                    <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20, textAlign: 'justify' }}>
                         {item}
                     </Text>
                 ))}

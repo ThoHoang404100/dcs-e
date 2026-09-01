@@ -125,7 +125,15 @@ export function DepartmentListView() {
             allowedRoles={['PHONGBAN.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent 
+                sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    zoom: "80%",
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading="Nhân viên"
                     links={[
@@ -148,7 +156,6 @@ export function DepartmentListView() {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs tabs={EMPLOYEE_TAB_DATA} activePath={location.pathname} />
                 <UseGridTableList
                     dataFiltered={dataFiltered}
                     loading={departmentsLoading}
@@ -162,6 +169,7 @@ export function DepartmentListView() {
                     searchText={searchText}
                     onSearchChange={setSearchText}
                     openBin={openBin}
+                    additionDefaultFilter={<ServiceNavTabs tabs={EMPLOYEE_TAB_DATA} activePath={location.pathname} />}
                 />
                 {renderCRUDForm()}
                 {renderConfirmDeleteRow()}

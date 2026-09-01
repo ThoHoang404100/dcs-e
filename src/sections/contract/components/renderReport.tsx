@@ -157,6 +157,7 @@ export const RenderReport = ({
                                         fontFamily: "Niramit",
                                         marginBottom: 4,
                                         textIndent: 15,
+                                        textAlign: 'justify',
                                     }}
                                 >
                                     {parts.map((part, i) => (
@@ -569,6 +570,7 @@ export const RenderReport = ({
                                     fontSize: 13,
                                     fontFamily: "Niramit",
                                     textIndent: 22,
+                                    textAlign: 'justify'
                                 }}
                             >
                                 {`Bên A xác nhận đã nhận đầy đủ sản phẩm/dịch vụ theo hợp đồng.`}
@@ -577,7 +579,8 @@ export const RenderReport = ({
                                 style={{
                                     fontSize: 13,
                                     fontFamily: "Niramit",
-                                    textIndent: 22
+                                    textIndent: 22,
+                                    textAlign: 'justify'
                                 }}
                             >
                                 {`Sản phẩm/dịch vụ hoạt động tốt, đúng thông số kỹ thuật, không có khiếu nại.`}
@@ -586,7 +589,8 @@ export const RenderReport = ({
                                 style={{
                                     fontSize: 13,
                                     fontFamily: "Niramit",
-                                    textIndent: 22
+                                    textIndent: 22,
+                                    textAlign: 'justify'
                                 }}
                             >
                                 {`Trong khi giao nhận không có các phát sinh khác xảy ra.`}
@@ -595,7 +599,8 @@ export const RenderReport = ({
                                 style={{
                                     fontSize: 13,
                                     fontFamily: "Niramit",
-                                    marginTop: 5
+                                    marginTop: 5,
+                                    textAlign: 'justify'
                                 }}
                             >
                                 {(() => {
@@ -622,7 +627,8 @@ export const RenderReport = ({
                                 style={{
                                     fontSize: 13,
                                     fontFamily: "Niramit",
-                                    marginTop: 5
+                                    marginTop: 5,
+                                    textAlign: 'justify'
                                 }}
                             >
                                 {`2.3. Biên bản này được lập thành 02 bản có giá trị pháp lý ngang nhau. bên A giữ 01 bản. bên B giữ 01 bản./.`}

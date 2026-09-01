@@ -6,7 +6,7 @@ import type {
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useBoolean, useSetState } from 'minimal-shared/hooks';
 
-import Button from '@mui/material/Button';
+import { Button, Box } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
 
@@ -189,7 +189,15 @@ export function ProductListView() {
       allowedRoles={['SANPHAM.VIEW']}
       sx={{ py: 10 }}
     >
-      <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <DashboardContent 
+          sx={{ 
+              flexGrow: 1, 
+              display: 'flex', 
+              flexDirection: 'column',
+              zoom: "80%",
+              transformOrigin: "top left",
+          }}
+      >
         <CustomBreadcrumbs
           heading="Sản phẩm"
           links={[
@@ -212,7 +220,6 @@ export function ProductListView() {
           sx={{ mb: { xs: 3, md: 5 } }}
         />
 
-        <ServiceNavTabs tabs={PRODUCT_TAB_DATA} activePath={location.pathname} />
         <UseGridTableList
           dataFiltered={dataFiltered}
           loading={productsLoading}
@@ -235,7 +242,17 @@ export function ProductListView() {
           onSearchChange={setSearchText}
           openBin={openBin}
           additionDefaultFilter={
-            <ProductFilterAddition filterProps={filterCounter} onChangeState={setFilterState} />
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    flexWrap: "wrap",
+                }}
+            >
+                <ServiceNavTabs tabs={PRODUCT_TAB_DATA} activePath={location.pathname} />
+                <ProductFilterAddition filterProps={filterCounter} onChangeState={setFilterState} />
+            </Box>
           }
         />
       </DashboardContent>

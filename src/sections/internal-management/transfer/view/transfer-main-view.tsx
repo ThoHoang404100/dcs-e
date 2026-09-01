@@ -118,7 +118,15 @@ export function TransferMainView() {
             allowedRoles={['CHUYENKHOANNOIBO.VIEW']}
             sx={{ py: 10 }}
         >
-            <DashboardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <DashboardContent 
+                sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    zoom: "80%",
+                    transformOrigin: "top left",
+                }}
+            >
                 <CustomBreadcrumbs
                     heading="Chuyển khoản"
                     links={[
@@ -141,7 +149,6 @@ export function TransferMainView() {
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
-                <ServiceNavTabs tabs={INTERNAL_TAB_DATA} activePath={location.pathname} />
                 <UseGridTableList
                     dataFiltered={tableData}
                     loading={transferDataLoading}
@@ -163,6 +170,7 @@ export function TransferMainView() {
                     handleChangeRowsPerPage={handleChangeRowsPerPage}
                     searchText={searchText}
                     onSearchChange={setSearchText}
+                    additionDefaultFilter={<ServiceNavTabs tabs={INTERNAL_TAB_DATA} activePath={location.pathname} />}
                 />
                 {renderForm()}
                 {renderConfirmDeleteRow()}

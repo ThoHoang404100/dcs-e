@@ -43,7 +43,7 @@ export const renderRuleThree = () => {
                 }}
             >
                 <View style={{ paddingLeft: 10 }}>
-                    <Text style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 15 }}>
+                    <Text style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 15, textAlign: 'justify' }}>
                         - Mọi chi phí phát sinh liên quan đến việc chuyển khoản (nếu có) do Bên A chịu trách nhiệm thanh toán.
                     </Text>
                 </View>
@@ -76,7 +76,7 @@ export const renderRuleThree = () => {
                 </View>
                 <View style={{ flexDirection: 'column', gap: 5 }}>
                     {ruleThree.map((item, index) => (
-                        <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20 }}>
+                        <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20, textAlign: 'justify' }}>
                             {item}
                         </Text>
                     ))}
@@ -107,7 +107,7 @@ export const renderRuleThree = () => {
                     gap: 5
                 }}>
                     {ruleFour.map((item, index) => (
-                        <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20 }}>
+                        <Text key={index} style={{ fontSize: 13, fontFamily: "Niramit", textIndent: 20, textAlign: 'justify' }}>
                             {item}
                         </Text>
                     ))}
