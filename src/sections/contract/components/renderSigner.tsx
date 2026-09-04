@@ -9,7 +9,7 @@ type props = {
 export const renderSigner = ({ customerName, companyName, position }: props) => {
     const sideA = [
         companyName ? companyName : customerName,
-        position,
+        position || 'GIÁM ĐỐC',
         customerName
     ];
 
@@ -25,118 +25,62 @@ export const renderSigner = ({ customerName, companyName, position }: props) => 
                 paddingLeft: 69,
                 paddingRight: 50,
                 marginTop: 10,
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
             }}
         >
-            {/* ==== Bên A ==== */}
-            <View
-                style={{
-                    width: '48%',
-                    flexShrink: 0,
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    height: 150,
-                }}
-            >
-                <View style={{ alignItems: 'center' }}>
-                    <Text
-                        style={{
-                            fontFamily: 'Niramit-Bold',
-                            fontSize: 13,
-                            textTransform: 'uppercase',
-                        }}
-                    >
+            {/* Row 1: Titles */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <View style={{ width: '48%', alignItems: 'center' }}>
+                    <Text style={{ fontFamily: 'Niramit-Bold', fontSize: 13, textTransform: 'uppercase' }}>
                         ĐẠI DIỆN BÊN A
                     </Text>
-                    <Text
-                        style={{
-                            fontFamily: 'Niramit-Bold',
-                            fontSize: 13,
-                            textAlign: 'center',
-                        }}
-                    >
+                </View>
+                <View style={{ width: '48%', alignItems: 'center' }}>
+                    <Text style={{ fontFamily: 'Niramit-Bold', fontSize: 13, textTransform: 'uppercase' }}>
+                        ĐẠI DIỆN BÊN B
+                    </Text>
+                </View>
+            </View>
+
+            {/* Row 2: Companies */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ width: '48%', alignItems: 'center' }}>
+                    <Text style={{ fontFamily: 'Niramit-Bold', fontSize: 13, textAlign: 'center' }}>
                         {sideA[0]}
                     </Text>
-                    <Text
-                        style={{
-                            fontFamily: 'Niramit-SemiBold',
-                            fontSize: 13,
-                            textAlign: 'center',
-                            textTransform: 'uppercase',
-                        }}
-                    >
+                </View>
+                <View style={{ width: '48%', alignItems: 'center' }}>
+                    <Text style={{ fontFamily: 'Niramit-Bold', fontSize: 13, textAlign: 'center' }}>
+                        {sideB[0]}
+                    </Text>
+                </View>
+            </View>
+
+            {/* Row 3: Positions */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 4 }}>
+                <View style={{ width: '48%', alignItems: 'center' }}>
+                    <Text style={{ fontFamily: 'Niramit-SemiBold', fontSize: 13, textAlign: 'center', textTransform: 'uppercase' }}>
                         {sideA[1]}
                     </Text>
                 </View>
-
-                <Text
-                    style={{
-                        fontFamily: 'Niramit',
-                        fontSize: 13,
-                        marginTop: 60,
-                        color: 'rgba(238, 0, 51, 1)',
-                        textAlign: 'center',
-                    }}
-                >
-                    {sideA[2]}
-                </Text>
-            </View>
-
-            {/* ==== Bên B ==== */}
-            <View
-                style={{
-                    width: '48%',
-                    flexShrink: 0,
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    height: 150,
-                }}
-            >
-                <View style={{ alignItems: 'center' }}>
-                    <Text
-                        style={{
-                            fontFamily: 'Niramit-Bold',
-                            fontSize: 13,
-                            textTransform: 'upperfirst',
-                        }}
-                    >
-                        ĐẠI DIỆN BÊN B
-                    </Text>
-                    <Text
-                        style={{
-                            fontFamily: 'Niramit-Bold',
-                            fontSize: 13,
-                            textAlign: 'center',
-                        }}
-                    >
-                        {sideB[0]}
-                    </Text>
-                    <Text
-                        style={{
-                            fontFamily: 'Niramit-SemiBold',
-                            fontSize: 13,
-                            textAlign: 'center',
-                        }}
-                    >
+                <View style={{ width: '48%', alignItems: 'center' }}>
+                    <Text style={{ fontFamily: 'Niramit-SemiBold', fontSize: 13, textAlign: 'center', textTransform: 'uppercase' }}>
                         {sideB[1]}
                     </Text>
                 </View>
+            </View>
 
-                <Text
-                    style={{
-                        fontFamily: 'Niramit',
-                        fontSize: 13,
-                        marginTop: 60,
-                        color: 'rgba(238, 0, 51, 1)',
-                        textAlign: 'center',
-                    }}
-                >
-                    {sideB[2]}
-                </Text>
+            {/* Row 4: Names */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 60 }}>
+                <View style={{ width: '48%', alignItems: 'center' }}>
+                    <Text style={{ fontFamily: 'Niramit', fontSize: 13, textAlign: 'center', color: 'rgba(238, 0, 51, 1)' }}>
+                        {sideA[2]}
+                    </Text>
+                </View>
+                <View style={{ width: '48%', alignItems: 'center' }}>
+                    <Text style={{ fontFamily: 'Niramit', fontSize: 13, textAlign: 'center', color: 'rgba(238, 0, 51, 1)' }}>
+                        {sideB[2]}
+                    </Text>
+                </View>
             </View>
         </View>
     );
