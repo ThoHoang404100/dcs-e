@@ -88,10 +88,12 @@ export function ContractForm({
     });
 
     const hasAppliedDefault = useRef(false);
+    const hasEditedPayment = useRef(false);
 
     useEffect(() => {
         if (!open) {
             hasAppliedDefault.current = false;
+            hasEditedPayment.current = false;
         }
     }, [open]);
 
@@ -237,6 +239,7 @@ export function ContractForm({
                 discount: CopiedContract.discount,
                 products: mappedItems
             });
+            hasEditedPayment.current = true;
             return;
         }
 
@@ -245,6 +248,7 @@ export function ContractForm({
             methods.setValue("products", mapped);
             methods.setValue("customerId", customerIdFromQuotation);
             methods.setValue("editorId", 0);
+            hasEditedPayment.current = false;
             return;
         }
 
@@ -284,6 +288,7 @@ export function ContractForm({
             methods.setValue("downPayment", defaultValues.downPayment);
             methods.setValue("nextPayment", defaultValues.nextPayment);
             methods.setValue("lastPayment", defaultValues.lastPayment);
+            hasEditedPayment.current = false;
 
             const loadPromise = loadProductDetails(currentDetails?.products || []);
             currentLoadRef.current = loadPromise;
@@ -312,6 +317,7 @@ export function ContractForm({
             methods.setValue("downPayment", selectedContract.downPayment);
             methods.setValue("nextPayment", selectedContract.nextPayment);
             methods.setValue("lastPayment", selectedContract.lastPayment);
+            hasEditedPayment.current = true;
         }
 
         const mappedProducts = mapProductsToItems(currentDetails?.products || []);
@@ -402,7 +408,7 @@ export function ContractForm({
         const currentNext = Number(nextPayment) || 0;
         const currentLast = Number(lastPayment) || 0;
 
-        if (currentDown === 0 && currentNext === 0 && currentLast === 0) {
+        if (!hasEditedPayment.current) {
             currentDown = Math.round(total / 2);
             setValue("downPayment", currentDown, { shouldValidate: false });
         }
@@ -691,7 +697,10 @@ export function ContractForm({
                                                         <Field.VNCurrencyInput
                                                             label="Lần 1 (Tạm ứng)"
                                                             name="downPayment"
-                                                            onFocus={() => setIsEditingPayment(true)}
+                                                            onFocus={() => {
+                                                                setIsEditingPayment(true);
+                                                                hasEditedPayment.current = true;
+                                                            }}
                                                             onBlur={() => setIsEditingPayment(false)}
                                                         />
                                                         <Field.VNCurrencyInput

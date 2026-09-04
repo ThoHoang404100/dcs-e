@@ -9,7 +9,7 @@ import { IContractDetailDto, IProductFormEdit } from "src/types/contract";
 import { ContractFormValues, contractSchema } from "./schema/contract-schema";
 import { DetailItem } from "../quotation/helper/DetailItem";
 import { useDebounce } from "minimal-shared/hooks";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ContractItemsTable } from "./contract-product-table";
 import { generateContractNo } from "src/utils/random-func";
 import { mapProductsToItems } from "./helper/mapProductToItems";
@@ -77,6 +77,13 @@ export function ContractForm({
 
     const [selectedSupplier, setSelectedSupplier] = useState<ISuppliersItem | null>(null);
     const [isEditingPayment, setIsEditingPayment] = useState(false);
+    const hasEditedPayment = useRef(false);
+
+    useEffect(() => {
+        if (!open) {
+            hasEditedPayment.current = false;
+        }
+    }, [open]);
 
     const defaultValues: ContractFormValues = {
         contractNo: generateContractNo('NCC'),
@@ -330,68 +337,40 @@ export function ContractForm({
     // }, [total, downPayment, nextPayment, setError, clearErrors, setValue]);
 
     useEffect(() => {
-        if (total > 0) {
-            const down = Number(downPayment) || 0;
-            const next = Number(nextPayment) || 0;
+        if (total === 0) {
+            setValue("downPayment", 0, { shouldValidate: false });
+            setValue("nextPayment", 0, { shouldValidate: false });
+            setValue("lastPayment", 0, { shouldValidate: false });
+            return;
+        }
 
-            if (!down && !next) {
-                const downDefault = Math.floor(total / 2);
-                const nextDefault = total - downDefault; // Đảm bảo tổng chính xác
-                const lastDefault = Math.max(total - downDefault - nextDefault, 0);
+        let down = Number(downPayment) || 0;
+        let next = Number(nextPayment) || 0;
 
-                setValue("downPayment", downDefault, { shouldValidate: true });
-                setValue("nextPayment", nextDefault, { shouldValidate: true });
-                setValue("lastPayment", lastDefault, { shouldValidate: true });
-                clearErrors(["downPayment", "nextPayment"]);
-                return;
-            }
+        if (!hasEditedPayment.current) {
+            const downDefault = Math.floor(total / 2);
+            const nextDefault = total - downDefault;
+            setValue("downPayment", downDefault, { shouldValidate: true });
+            setValue("nextPayment", nextDefault, { shouldValidate: true });
+            setValue("lastPayment", 0, { shouldValidate: true });
+            clearErrors(["downPayment", "nextPayment"]);
+            return;
+        }
 
-            const currentTotal = down + next;
-            const isEvenSplit = Math.abs(down - next) <= 1 && currentTotal > 0;
-
-            if (isEvenSplit && currentTotal !== total) {
-                const downDefault = Math.floor(total / 2);
-                const nextDefault = total - downDefault;
-
-                const isStillEven = Math.abs(downDefault - nextDefault) <= 1;
-
-                if (isStillEven) {
-                    const lastDefault = Math.max(total - downDefault - nextDefault, 0);
-
-                    setValue("downPayment", downDefault, { shouldValidate: true });
-                    setValue("nextPayment", nextDefault, { shouldValidate: true });
-                    setValue("lastPayment", lastDefault, { shouldValidate: true });
-                } else {
-                    // Chia không đều -> dùng tỷ lệ 30/40/30
-                    const downDefault30 = Math.round(total * 0.3);
-                    const nextDefault40 = Math.round(total * 0.4);
-                    const lastDefault30 = Math.max(total - downDefault30 - nextDefault40, 0);
-
-                    setValue("downPayment", downDefault30, { shouldValidate: true });
-                    setValue("nextPayment", nextDefault40, { shouldValidate: true });
-                    setValue("lastPayment", lastDefault30, { shouldValidate: true });
-                }
-
-                clearErrors(["downPayment", "nextPayment"]);
-                return;
-            }
-
-            if (down + next > total) {
-                setError("downPayment", {
-                    type: "manual",
-                    message: "Tổng tiền trả trước và trả sau không được vượt quá tổng tiền hợp đồng",
-                });
-                setError("nextPayment", {
-                    type: "manual",
-                    message: "Tổng tiền trả trước và trả sau không được vượt quá tổng tiền hợp đồng",
-                });
-                setValue("lastPayment", 0, { shouldValidate: true });
-            } else {
-                clearErrors(["downPayment", "nextPayment"]);
-
-                const lastDefault = Math.max(total - down - next, 0);
-                setValue("lastPayment", lastDefault, { shouldValidate: true });
-            }
+        if (down + next > total) {
+            setError("downPayment", {
+                type: "manual",
+                message: "Tổng tiền trả trước và trả sau không được vượt quá tổng tiền hợp đồng",
+            });
+            setError("nextPayment", {
+                type: "manual",
+                message: "Tổng tiền trả trước và trả sau không được vượt quá tổng tiền hợp đồng",
+            });
+            setValue("lastPayment", 0, { shouldValidate: true });
+        } else {
+            clearErrors(["downPayment", "nextPayment"]);
+            const lastDefault = Math.max(total - down - next, 0);
+            setValue("lastPayment", lastDefault, { shouldValidate: true });
         }
     }, [total, downPayment, nextPayment, setError, clearErrors, setValue]);
 
@@ -423,12 +402,14 @@ export function ContractForm({
                 discount: CopiedContract.discount,
                 products: mappedItems
             });
+            hasEditedPayment.current = true;
         }
 
         if (detailsFromQuotation?.length > 0 && customerIdFromQuotation) {
             const mapped = mapProductFromOrderToItems(detailsFromQuotation);
             methods.setValue("products", mapped);
             methods.setValue("supplierId", customerIdFromQuotation);
+            hasEditedPayment.current = false;
             return;
         }
 
@@ -442,6 +423,7 @@ export function ContractForm({
                     price: item.price || 0
                 }))
             );
+            hasEditedPayment.current = false;
             return;
         }
 
@@ -471,6 +453,7 @@ export function ContractForm({
         methods.setValue("products", mappedItems);
         methods.setValue("note", selectedContract.note ?? "");
         methods.setValue("discount", selectedContract.discount);
+        hasEditedPayment.current = true;
 
         setOriginalItems(
             mappedItems.map((item, i) => ({
@@ -634,7 +617,10 @@ export function ContractForm({
                                                         <Field.VNCurrencyInput
                                                             label="Lần 1 (Tạm ứng)"
                                                             name="downPayment"
-                                                            onFocus={() => setIsEditingPayment(true)}
+                                                            onFocus={() => {
+                                                                setIsEditingPayment(true);
+                                                                hasEditedPayment.current = true;
+                                                            }}
                                                             onBlur={() => setIsEditingPayment(false)}
                                                         />
                                                         <Field.VNCurrencyInput

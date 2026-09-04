@@ -32,7 +32,8 @@ export const renderLaw = (createDate?: any) => {
                         fontSize: 13,
                         fontFamily: "Niramit",
                         marginBottom: 4,
-                        textIndent: 15
+                        textIndent: 15,
+                        textAlign: 'justify'
                     }}
                 >
                     {item}
